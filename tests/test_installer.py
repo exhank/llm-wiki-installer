@@ -44,6 +44,7 @@ from llm_wiki_installer.upstream_skills import (
     UpstreamInstall,
     copy_directory_contents,
     count_skill_dirs,
+    flatten_skill_dirs,
     has_discovered_skill_file,
     install_one_upstream_repo,
     install_upstream_skills,
@@ -635,6 +636,39 @@ def test_count_skill_dirs_counts_only_top_level_skill_dirs(tmp_path: Path) -> No
     assert count_skill_dirs(tmp_path) == 1
 
 
+def test_flatten_skill_dirs_replaces_existing_and_rejects_duplicates(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "source"
+    skill = source / "skill"
+    non_skill = source / "notes"
+    skill.mkdir(parents=True)
+    non_skill.mkdir()
+    (skill / "SKILL.md").write_text("# New\n", encoding="utf-8")
+    (non_skill / "README.md").write_text("skip\n", encoding="utf-8")
+
+    target = tmp_path / "target"
+    existing = target / ".agents/skills/skill"
+    existing.mkdir(parents=True)
+    (existing / "SKILL.md").write_text("# Old\n", encoding="utf-8")
+
+    installed: set[str] = set()
+    flatten_skill_dirs(
+        source, target / ".agents/skills", target, "example/repo", installed
+    )
+
+    assert (target / ".agents/skills/skill/SKILL.md").read_text(
+        encoding="utf-8"
+    ) == "# New\n"
+    assert not (target / ".agents/skills/notes").exists()
+    assert installed == {"skill"}
+
+    with pytest.raises(InstallerError, match="duplicate upstream Skill name"):
+        flatten_skill_dirs(
+            source, target / ".agents/skills", target, "example/other", installed
+        )
+
+
 def test_install_one_upstream_repo_copies_skills_and_replaces_existing_target(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -760,6 +794,8 @@ def test_install_upstream_skills_records_counts(
         1,
     )
     assert results["kepano"].skill_count == 1
+    assert (tmp_path / ".agents/skills/ar9av/SKILL.md").is_file()
+    assert (tmp_path / ".agents/skills/kepano/SKILL.md").is_file()
 
 
 def test_install_upstream_skills_records_skipped_sources(
@@ -795,7 +831,7 @@ def test_install_upstream_skills_records_skipped_sources(
         0,
         "skipped",
     )
-    assert not (tmp_path / ".agents/skills/upstream/kepano").exists()
+    assert not (tmp_path / ".agents/skills/upstream").exists()
 
 
 def test_run_install_orchestrates_installer_flow(

@@ -21,7 +21,7 @@ The goal is to maintain a durable Markdown wiki compiled from user-approved raw 
 - `wiki/log.md` is the append-only audit ledger.
 - `outputs/` contains current final deliverables and exports.
 - `archive/` contains temporarily inactive old outputs only.
-- `.agents/skills/upstream/` contains installed upstream skills.
+- `.agents/skills/` contains installed upstream skills, flattened by skill name.
 - `.agents/skill-manifest.md` and `.agents/skill-manifest.json` record installed skills and tool versions.
 - `.codex/hooks/` contains LLM hooks.
 - `.scripts/` contains fixed project scripts.

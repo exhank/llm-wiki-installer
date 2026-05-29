@@ -101,9 +101,10 @@ project-owned SKILL.md
 The installer must refuse targets that are the generator repository itself or a
 child path inside the generator repository.
 
-When an upstream Skill source is skipped, its `.agents/skills/upstream/<source>/`
-directory must not be left behind from a previous install. The manifest records
-the skipped state instead.
+Upstream Skill directories are flattened into `.agents/skills/<skill-name>/`.
+When an upstream Skill source is skipped, it must not create legacy
+`.agents/skills/upstream/<source>/` directories. The manifest records the
+skipped state instead.
 
 ---
 
@@ -324,7 +325,7 @@ Install pinned upstream Skills when selected.
 ```text
 repo: https://github.com/Ar9av/obsidian-wiki
 pinned commit: 347e85704c52474d13470a3919e4a5cd7e3809cb
-install target: .agents/skills/upstream/Ar9av/
+install target: .agents/skills/
 selection: all discovered upstream skills at pinned commit
 ```
 
@@ -352,7 +353,7 @@ Install pinned upstream Skills when selected.
 ```text
 repo: https://github.com/kepano/obsidian-skills
 pinned commit: 553ef99aa3306dd23f268e1ba9af752577684f69
-install target: .agents/skills/upstream/kepano/
+install target: .agents/skills/
 selection: all discovered upstream skills at pinned commit
 ```
 
@@ -492,7 +493,7 @@ The goal is to maintain a durable Markdown wiki compiled from user-approved raw 
 - `wiki/log.md` is the append-only audit ledger.
 - `outputs/` contains current final deliverables and exports.
 - `archive/` contains temporarily inactive old outputs only.
-- `.agents/skills/upstream/` contains installed upstream skills.
+- `.agents/skills/` contains installed upstream skills, flattened by skill name.
 - `.agents/skill-manifest.md` and `.agents/skill-manifest.json` record installed skills and tool versions.
 - `.codex/hooks/` contains LLM hooks.
 - `.scripts/` contains fixed project scripts.
@@ -788,13 +789,13 @@ unauthorized_skill_paths="$(
   find . \
     \( -path './.git' -o -path './node_modules' -o -path './.cache' \) -prune -o \
     -name SKILL.md -print \
-    | grep -v -E '^\./\.agents/skills/upstream/[^/]+/.+/SKILL\.md$' \
+    | grep -v -E '^\./\.agents/skills/[^/]+/SKILL\.md$' \
     || true
 )"
 
 if [ -n "$unauthorized_skill_paths" ]; then
   printf "%s\n" "$unauthorized_skill_paths" >&2
-  fail "Unauthorized SKILL.md found outside .agents/skills/upstream/<repo>/<skill-name>/."
+  fail "Unauthorized SKILL.md found outside .agents/skills/<skill-name>/."
 fi
 
 bad_generated_names="$(

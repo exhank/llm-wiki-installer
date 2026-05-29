@@ -64,7 +64,8 @@ Security-sensitive commands include:
 ## Generated Vault Policy
 
 The generated `AGENTS.md` is the runtime policy authority. Upstream Skills are
-copied under `.agents/skills/upstream/` and must not override `AGENTS.md`.
+copied under `.agents/skills/`, flattened by skill name, and must not override
+`AGENTS.md`.
 Generated manifests record selected tools, skipped tools, upstream pinned
 commits, resolved commits, and install results in both Markdown and JSON.
 Stable Obsidian settings, pinned community plugin assets, and the bundled theme

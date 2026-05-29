@@ -115,7 +115,7 @@ def test_install_upstream_skills_rejects_symlinked_install_target(
 ) -> None:
     outside = tmp_path / "outside"
     outside.mkdir()
-    install_target = tmp_path / ".agents/skills/upstream/kepano"
+    install_target = tmp_path / ".agents/skills/upstream"
     install_target.parent.mkdir(parents=True)
     install_target.symlink_to(outside, target_is_directory=True)
 

@@ -104,7 +104,7 @@ retrieval accelerator = wiki/index.md + wiki/maps/ + rg + fzf
 ├─ README.md                    # human entry point: operations guide, design idea, directory explanation
 ├─ .agents/
 │  ├─ skills/
-│  │  └─ upstream/              # selected upstream skills, namespaced by source repo
+│  │  └─ <skill-name>/          # selected upstream skills, flattened by skill name
 │  ├─ skill-manifest.md         # human-readable version pins, install state, skipped records
 │  └─ skill-manifest.json       # machine-readable version pins, install state, skipped records
 ├─ .codex/
@@ -146,7 +146,7 @@ examples/
 | `wiki/log.md` | append-only compilation and change ledger | append-only | audit record; does not replace Git log |
 | `outputs/` | current deliverables | writable within a clear task | regenerable; archivable |
 | `archive/` | cold storage for old outputs | writable within a clear archive task | does not carry knowledge structure |
-| `.agents/skills/upstream/` | selected upstream Skills, namespaced by source repo | maintained by setup | recorded by manifest |
+| `.agents/skills/` | selected upstream Skills, flattened by skill name | maintained by setup | recorded by manifest |
 | `.agents/skill-manifest.md` | selected upstream versions, skipped records, and generated artifacts lockfile | maintained by setup | updated on every setup/update |
 | `.agents/skill-manifest.json` | machine-readable mirror of installer, tool, upstream pin, and generated artifact state | maintained by setup | updated on every setup/update |
 | `.codex/hooks/` | LLM hook triggers | maintained by adapter | does not carry long-term rules |

@@ -87,7 +87,7 @@ knowledge-vault/
 +-- .agents/
 |   +-- skill-manifest.md
 |   +-- skill-manifest.json
-|   +-- skills/upstream/ # pinned third-party Skill artifacts
+|   +-- skills/          # flattened pinned third-party Skill artifacts
 +-- .codex/config.toml
 +-- .scripts/            # verification helpers
 +-- .obsidian/           # stable Obsidian settings, theme, and pinned plugin assets
@@ -220,7 +220,7 @@ AGENTS.md
 README.md
 .agents/skill-manifest.md
 .agents/skill-manifest.json
-.agents/skills/upstream/
+.agents/skills/
 .codex/config.toml
 .codex/hooks/
 .scripts/postrun.sh
@@ -229,10 +229,10 @@ README.md
 .gitignore
 ```
 
-Selected upstream Skills are installed into `.agents/skills/upstream/` and
-recorded in `.agents/skill-manifest.md` and `.agents/skill-manifest.json`.
-Skipped sources are recorded as skipped and are not left behind as stale upstream
-directories. Stable Obsidian settings, the Things theme, and pinned obsidian-git
+Selected upstream Skills are installed into `.agents/skills/`, flattened by
+skill directory name, and recorded in `.agents/skill-manifest.md` and
+`.agents/skill-manifest.json`. Skipped sources are recorded as skipped. Stable
+Obsidian settings, the Things theme, and pinned obsidian-git
 plugin assets are generated under `.obsidian/`; volatile workspace state is not
 generated.
 

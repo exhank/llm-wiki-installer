@@ -38,13 +38,13 @@ unauthorized_skill_paths="$(
   find . \
     \( -path './.git' -o -path './node_modules' -o -path './.cache' \) -prune -o \
     -name SKILL.md -print \
-    | grep -v -E '^\./\.agents/skills/upstream/[^/]+/.+/SKILL\.md$' \
+    | grep -v -E '^\./\.agents/skills/[^/]+/SKILL\.md$' \
     || true
 )"
 
 if [ -n "$unauthorized_skill_paths" ]; then
   printf "%s\n" "$unauthorized_skill_paths" >&2
-  fail "Unauthorized SKILL.md found outside .agents/skills/upstream/<repo>/<skill-name>/."
+  fail "Unauthorized SKILL.md found outside .agents/skills/<skill-name>/."
 fi
 
 bad_generated_names="$(

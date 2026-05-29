@@ -11,6 +11,8 @@ from .errors import InstallerError
 from .path_safety import reject_path_symlink
 from .terminal_ui import select_options
 
+UpstreamRepo = tuple[str, str, str, str]
+
 UPSTREAM_REPOS = (
     (
         "https://github.com/Ar9av/obsidian-wiki",
@@ -62,15 +64,18 @@ def install_upstream_skills(
 ) -> Mapping[str, UpstreamInstall]:
     results: dict[str, UpstreamInstall] = {}
     selected = set(selected_skills)
+    skills_root = target / ".agents/skills"
+    legacy_upstream_root = skills_root / "upstream"
+    reject_path_symlink(skills_root, target)
+    reject_path_symlink(legacy_upstream_root, target)
+    if legacy_upstream_root.exists():
+        shutil.rmtree(legacy_upstream_root)
+    installed_skill_names: set[str] = set()
 
     with tempfile.TemporaryDirectory(prefix="llm-wiki-upstream.") as tmp:
         tmp_base = Path(tmp)
         for repo_url, repo_slug, target_name, pinned_commit in UPSTREAM_REPOS:
-            install_target = target / ".agents/skills/upstream" / target_name
-            reject_path_symlink(install_target, target)
             if target_name not in selected:
-                if install_target.exists():
-                    shutil.rmtree(install_target)
                 results[target_name] = UpstreamInstall(
                     repo_url=repo_url,
                     pinned_commit=pinned_commit,
@@ -80,19 +85,44 @@ def install_upstream_skills(
                 )
                 continue
 
-            clone_target = tmp_base / repo_slug.replace("/", "-")
-            commit = install_one_upstream_repo(
-                repo_url, repo_slug, pinned_commit, install_target, clone_target
-            )
-            skill_count = count_skill_dirs(install_target)
-            results[target_name] = UpstreamInstall(
-                repo_url=repo_url,
-                pinned_commit=pinned_commit,
-                commit=commit,
-                skill_count=skill_count,
+            results[target_name] = install_selected_upstream_repo(
+                repo=(repo_url, repo_slug, target_name, pinned_commit),
+                tmp_base=tmp_base,
+                skills_root=skills_root,
+                target_root=target,
+                installed_skill_names=installed_skill_names,
             )
 
     return results
+
+
+def install_selected_upstream_repo(
+    repo: UpstreamRepo,
+    tmp_base: Path,
+    skills_root: Path,
+    target_root: Path,
+    installed_skill_names: set[str],
+) -> UpstreamInstall:
+    repo_url, repo_slug, target_name, pinned_commit = repo
+    clone_target = tmp_base / repo_slug.replace("/", "-")
+    install_target = tmp_base / f"{target_name}-skills"
+    commit = install_one_upstream_repo(
+        repo_url, repo_slug, pinned_commit, install_target, clone_target
+    )
+    skill_count = count_skill_dirs(install_target)
+    flatten_skill_dirs(
+        install_target,
+        skills_root,
+        target_root,
+        repo_slug,
+        installed_skill_names,
+    )
+    return UpstreamInstall(
+        repo_url=repo_url,
+        pinned_commit=pinned_commit,
+        commit=commit,
+        skill_count=skill_count,
+    )
 
 
 def install_one_upstream_repo(
@@ -181,3 +211,26 @@ def count_skill_dirs(directory: Path) -> int:
         for child in directory.iterdir()
         if child.is_dir() and (child / "SKILL.md").is_file()
     )
+
+
+def flatten_skill_dirs(
+    source: Path,
+    skills_root: Path,
+    target_root: Path,
+    repo_slug: str,
+    installed_skill_names: set[str],
+) -> None:
+    skills_root.mkdir(parents=True, exist_ok=True)
+    for child in source.iterdir():
+        if not child.is_dir() or not (child / "SKILL.md").is_file():
+            continue
+        if child.name in installed_skill_names:
+            raise InstallerError(
+                f"duplicate upstream Skill name {child.name!r} from {repo_slug}."
+            )
+        destination = skills_root / child.name
+        reject_path_symlink(destination, target_root)
+        if destination.exists():
+            shutil.rmtree(destination)
+        shutil.copytree(child, destination)
+        installed_skill_names.add(child.name)

@@ -308,8 +308,8 @@ test_readme_one_line_curl_install_command() {
 
   assert_file "$target/AGENTS.md"
   assert_file "$target/.agents/skill-manifest.json"
-  assert_file "$target/.agents/skills/upstream/Ar9av/ar9av-skill/SKILL.md"
-  assert_file "$target/.agents/skills/upstream/kepano/kepano-skill/SKILL.md"
+  assert_file "$target/.agents/skills/ar9av-skill/SKILL.md"
+  assert_file "$target/.agents/skills/kepano-skill/SKILL.md"
   assert_contains "$curl_log" "raw.githubusercontent.com/exhank/llm-wiki-installer/main/install.sh"
   assert_contains "$git_log" "fetch -q --depth 1 origin v9.8.7"
   assert_contains "$target/.scripts/postrun.sh" "git --no-pager diff --stat"
@@ -367,8 +367,8 @@ test_no_interactive_uses_default_selection() {
 
   run_install "$out" --no-interactive "$target"
 
-  assert_file "$target/.agents/skills/upstream/Ar9av/ar9av-skill/SKILL.md"
-  assert_file "$target/.agents/skills/upstream/kepano/kepano-skill/SKILL.md"
+  assert_file "$target/.agents/skills/ar9av-skill/SKILL.md"
+  assert_file "$target/.agents/skills/kepano-skill/SKILL.md"
   assert_contains "$target/.agents/skill-manifest.md" "| rg | ripgrep 14.1.0 | installed |"
   assert_contains "$target/.agents/skill-manifest.md" "| fzf | 0.56.0 (test) | installed |"
 }
@@ -423,8 +423,8 @@ test_full_install_generates_expected_layout() {
   assert_file "$target/.obsidian/plugins/obsidian-git/manifest.json"
   assert_file "$target/.obsidian/plugins/obsidian-git/styles.css"
   assert_file "$target/.obsidian/themes/Things/theme.css"
-  assert_file "$target/.agents/skills/upstream/Ar9av/ar9av-skill/SKILL.md"
-  assert_file "$target/.agents/skills/upstream/kepano/kepano-skill/SKILL.md"
+  assert_file "$target/.agents/skills/ar9av-skill/SKILL.md"
+  assert_file "$target/.agents/skills/kepano-skill/SKILL.md"
   assert_executable "$target/.scripts/postrun.sh"
   assert_executable "$target/.scripts/check-index-log.sh"
   assert_executable "$target/.obsidian/plugins/obsidian-git/obsidian_askpass.sh"
@@ -544,7 +544,7 @@ test_generated_postrun_rejects_unauthorized_skill_file() {
     sed -n '1,220p' "$out" >&2
     fail_assertion "expected unauthorized SKILL.md failure"
   fi
-  assert_contains "$out" "ERROR: Unauthorized SKILL.md found outside .agents/skills/upstream/<repo>/<skill-name>/."
+  assert_contains "$out" "ERROR: Unauthorized SKILL.md found outside .agents/skills/<skill-name>/."
 }
 
 test_generated_postrun_rejects_forbidden_runtime_directories() {

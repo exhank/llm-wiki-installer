@@ -17,7 +17,7 @@ REQUIRED_DIRECTORIES = (
     "wiki/maps",
     "outputs",
     "archive",
-    ".agents/skills/upstream",
+    ".agents/skills",
     ".codex/hooks",
     ".scripts",
     ".obsidian/plugins/obsidian-git",
