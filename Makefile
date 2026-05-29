@@ -48,7 +48,7 @@ package-check: package
 verify: venv lint typecheck coverage package-check
 	bash -n install.sh
 	bash -n tests/install_test.sh
-	PYTHONPYCACHEPREFIX=/private/tmp/llm-wiki-pycache $(VENV_PYTHON) -m compileall -q src
+	PYTHONPYCACHEPREFIX=/tmp/llm-wiki-pycache $(VENV_PYTHON) -m compileall -q src
 	$(VENV_PYTHON) -m pytest
 	bash tests/install_test.sh
 
