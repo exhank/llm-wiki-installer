@@ -70,7 +70,27 @@ fi
 command -v git >/dev/null || fail "git is required to bootstrap the streamed installer."
 
 REPO_URL="${LLM_WIKI_INSTALLER_REPO_URL:-https://github.com/exhank/llm-wiki-installer}"
-REPO_REF="${LLM_WIKI_INSTALLER_REF:-v0.1.0}"
+resolve_repo_ref() {
+  if [ -n "${LLM_WIKI_INSTALLER_REF:-}" ]; then
+    printf '%s\n' "$LLM_WIKI_INSTALLER_REF"
+    return 0
+  fi
+
+  if [ "$REPO_URL" = "https://github.com/exhank/llm-wiki-installer" ] &&
+    command -v curl >/dev/null; then
+    latest_url="$(curl -fsSLI -o /dev/null -w '%{url_effective}' \
+      "$REPO_URL/releases/latest" 2>/dev/null || true)"
+    latest_ref="${latest_url##*/}"
+    if [ -n "$latest_ref" ] && [ "$latest_ref" != "latest" ]; then
+      printf '%s\n' "$latest_ref"
+      return 0
+    fi
+  fi
+
+  printf '%s\n' "main"
+}
+
+REPO_REF="$(resolve_repo_ref)"
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/llm-wiki-installer.XXXXXX")"
 CLONE_DIR="$TMP_DIR/llm-wiki-installer"
 

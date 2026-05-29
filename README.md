@@ -140,10 +140,10 @@ Pass installer options through the same pattern:
 /bin/bash -c "$(curl -fsSL "https://raw.githubusercontent.com/exhank/llm-wiki-installer/$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/exhank/llm-wiki-installer/releases/latest | sed 's#.*/tag/##')/install.sh")" -- --force
 ```
 
-The streamed launcher also clones the release ref embedded in that launcher.
-Set `LLM_WIKI_INSTALLER_REF` only when intentionally testing another ref. Using
-the same release tag in the curl URL and launcher ref keeps the bootstrap path
-anchored to the same published source.
+The streamed launcher resolves
+[GitHub Releases latest](https://github.com/exhank/llm-wiki-installer/releases/latest)
+when `LLM_WIKI_INSTALLER_REF` is not set. Set `LLM_WIKI_INSTALLER_REF` only when
+intentionally testing or pinning another ref.
 
 The `uvx` entry point uses the PyPI package and runs the same installer CLI as
 `llm-wiki-install`. It is the preferred path for automation because JSON output

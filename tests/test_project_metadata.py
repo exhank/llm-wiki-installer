@@ -36,6 +36,13 @@ def test_readme_uses_latest_version_placeholders_for_user_commands() -> None:
     assert "url_effective" in readme
 
 
+def test_streamed_launcher_does_not_hard_code_release_ref() -> None:
+    launcher = (REPO_ROOT / "install.sh").read_text(encoding="utf-8")
+
+    assert "LLM_WIKI_INSTALLER_REF:-v0.1.0" not in launcher
+    assert "releases/latest" in launcher
+
+
 def test_github_actions_are_pinned_to_full_commit_shas() -> None:
     workflow_text = "\n".join(
         path.read_text(encoding="utf-8")

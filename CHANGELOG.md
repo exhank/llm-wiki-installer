@@ -5,6 +5,12 @@ All notable changes to this project will be documented here.
 This project follows a simple human-readable changelog. Versions are published
 when the package version in `src/llm_wiki_installer/__init__.py` changes.
 
+## 0.1.2 - 2026-05-29
+
+- Make the streamed shell launcher resolve GitHub Releases latest when
+  `LLM_WIKI_INSTALLER_REF` is not set, avoiding stale bootstrap clones from a
+  previously hard-coded release ref.
+
 ## 0.1.1 - 2026-05-29
 
 - Update user-facing documentation now that `llm-wiki-installer` is published

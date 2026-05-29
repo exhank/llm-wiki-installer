@@ -10,7 +10,7 @@ def template_context() -> dict[str, str]:
     context = {
         "TODAY": "2026-05-28",
         "TARGET": "/tmp/vault",
-        "INSTALLER_VERSION": "0.1.1",
+        "INSTALLER_VERSION": "0.1.2",
         "INSTALLER_NAME": "llm-wiki-installer",
         "NODE_VERSION": "v22.3.0",
         "NPM_VERSION": "10.8.0",

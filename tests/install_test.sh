@@ -192,6 +192,12 @@ case "${1:-}" in
 esac
 EOF_QMD
 
+  cat >"$bin/curl" <<'EOF_CURL'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s' "${STUB_LATEST_RELEASE_URL:-https://github.com/exhank/llm-wiki-installer/releases/tag/v9.8.7}"
+EOF_CURL
+
   cat >"$bin/git" <<'EOF_GIT'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -293,7 +299,7 @@ case "$cmd" in
 esac
 EOF_GIT
 
-  chmod +x "$bin/python3" "$bin/node" "$bin/npm" "$bin/rg" "$bin/fzf" "$bin/qmd" "$bin/git"
+  chmod +x "$bin/python3" "$bin/node" "$bin/npm" "$bin/rg" "$bin/fzf" "$bin/qmd" "$bin/curl" "$bin/git"
 }
 
 setup_case() {
@@ -357,6 +363,23 @@ test_streamed_bootstrap_is_quiet_for_json_output() {
   assert_not_contains "$out" "Cloning into"
   assert_not_contains "$out" "is not a commit"
   assert_not_contains "$out" "detached HEAD"
+}
+
+test_streamed_bootstrap_defaults_to_latest_release_ref() {
+  setup_case streamed-bootstrap-latest-ref
+  local out="$CASE_DIR/out.txt"
+  local git_log="$CASE_DIR/git.log"
+  local launcher_dir="$CASE_DIR/launcher"
+  local target="$CASE_DIR/vault"
+  mkdir -p "$launcher_dir"
+  cp "$ROOT/install.sh" "$launcher_dir/install.sh"
+
+  TEST_GIT_BOOTSTRAP_SOURCE="$ROOT" \
+    TEST_GIT_BOOTSTRAP_LOG="$git_log" \
+    run_with_stubs bash "$launcher_dir/install.sh" --dry-run --json --tools none --skills none "$target" >"$out" 2>&1
+
+  assert_contains "$out" '"action": "dry-run"'
+  assert_contains "$git_log" "fetch -q --depth 1 origin v9.8.7"
 }
 
 test_refuses_generator_directory() {
@@ -699,6 +722,7 @@ main() {
   run_test test_help
   run_test test_lib_only_mode_exits_without_bootstrap
   run_test test_streamed_bootstrap_is_quiet_for_json_output
+  run_test test_streamed_bootstrap_defaults_to_latest_release_ref
   run_test test_refuses_generator_directory
   run_test test_refuses_generator_child_directory
   run_test test_refuses_generator_lookalike
