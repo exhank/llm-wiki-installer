@@ -114,24 +114,26 @@ Pin the package version for repeatable automation:
 uvx --python 3.13 llm-wiki-installer==<version> /path/to/knowledge-vault
 ```
 
-Install into the current directory with a release-pinned one-line shell
-bootstrap that resolves the latest release tag from
-[GitHub Releases](https://github.com/exhank/llm-wiki-installer/releases/latest):
+Install into the current directory with the streamed shell bootstrap:
 
 ```bash
-/bin/bash -c "$(curl -fsSL "https://raw.githubusercontent.com/exhank/llm-wiki-installer/$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/exhank/llm-wiki-installer/releases/latest | sed 's#.*/tag/##')/install.sh")"
+curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/main/install.sh | /bin/bash
 ```
 
 Pass installer options through the same pattern:
 
 ```bash
-/bin/bash -c "$(curl -fsSL "https://raw.githubusercontent.com/exhank/llm-wiki-installer/$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/exhank/llm-wiki-installer/releases/latest | sed 's#.*/tag/##')/install.sh")" -- --force
+curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/main/install.sh | /bin/bash -s -- --force
 ```
 
 The streamed launcher resolves
 [GitHub Releases latest](https://github.com/exhank/llm-wiki-installer/releases/latest)
-when `LLM_WIKI_INSTALLER_REF` is not set. Set `LLM_WIKI_INSTALLER_REF` only when
-intentionally testing or pinning another ref.
+internally when `LLM_WIKI_INSTALLER_REF` is not set. Set
+`LLM_WIKI_INSTALLER_REF` only when intentionally testing or pinning another ref:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/main/install.sh | LLM_WIKI_INSTALLER_REF=<tag-or-commit> /bin/bash
+```
 
 The `uvx` entry point uses the PyPI package and runs the same installer CLI as
 `llm-wiki-install`. It is the preferred path for automation because JSON output

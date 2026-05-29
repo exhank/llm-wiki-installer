@@ -42,7 +42,7 @@ def test_readme_uses_latest_version_placeholders_for_user_commands() -> None:
     assert "raw.githubusercontent.com/exhank/llm-wiki-installer/v0.1.0" not in readme
     assert "llm-wiki-installer==<version>" in readme
     assert "https://github.com/exhank/llm-wiki-installer/releases/latest" in readme
-    assert "url_effective" in readme
+    assert "url_effective" not in readme
 
 
 def test_streamed_launcher_does_not_hard_code_release_ref() -> None:
