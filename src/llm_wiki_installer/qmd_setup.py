@@ -43,7 +43,7 @@ def initialize_qmd(target: Path, quiet: bool = False) -> None:
 
 def parse_qmd_collection_path(output: str) -> str:
     for line in output.splitlines():
-        match = re.match(r"Path:\s*(.+)$", line)
+        match = re.match(r"\s*Path:\s*(.+)$", line)
         if match:
             return match.group(1).strip()
     return ""

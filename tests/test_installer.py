@@ -188,6 +188,12 @@ def test_node_major_version(version: str, expected: int | None) -> None:
     ("output", "expected"),
     [
         ("Name: knowledge-vault\nPath: /tmp/vault\n", "/tmp/vault"),
+        (
+            "Collection: knowledge-vault\n"
+            "  Path:     /Users/zayton/Developer/Playground/my-vault/knowledge-vault\n"
+            "  Pattern:  **/*.md\n",
+            "/Users/zayton/Developer/Playground/my-vault/knowledge-vault",
+        ),
         ("Name: knowledge-vault\n", ""),
         ("", ""),
     ],

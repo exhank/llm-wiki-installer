@@ -5,6 +5,12 @@ All notable changes to this project will be documented here.
 This project follows a simple human-readable changelog. Versions are published
 when the package version in `src/llm_wiki_installer/__init__.py` changes.
 
+## 0.1.3 - 2026-05-29
+
+- Fix qmd collection detection for current `qmd collection show` output that
+  indents the `Path:` field, avoiding duplicate `knowledge-vault` collection
+  add failures during reinstall.
+
 ## 0.1.2 - 2026-05-29
 
 - Make the streamed shell launcher resolve GitHub Releases latest when
