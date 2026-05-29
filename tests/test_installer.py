@@ -253,6 +253,7 @@ def test_run_install_dry_run_json_outputs_plan(
     assert plan["selectedTools"] == ["rg"]
     assert plan["selectedSkills"] == []
     assert "schema" in plan["wouldCreateDirectories"]
+    assert "schema/workflow.md" in plan["wouldWriteFiles"]
     assert "schema/log.md" in plan["wouldWriteFiles"]
     assert "schema/wiki-page.md" in plan["wouldWriteFiles"]
     assert "schema/map.md" in plan["wouldWriteFiles"]
@@ -468,6 +469,7 @@ def test_write_generated_files_preserves_existing_files_without_force(
     assert readme.read_text(encoding="utf-8") == "custom readme\n"
     assert (tmp_path / "AGENTS.md").is_file()
     assert (tmp_path / "wiki/tags.md").is_file()
+    assert (tmp_path / "schema/workflow.md").is_file()
     assert (tmp_path / "schema/log.md").is_file()
     assert (tmp_path / "schema/wiki-page.md").is_file()
     assert (tmp_path / "schema/map.md").is_file()
@@ -900,6 +902,7 @@ def test_generated_tag_policy_removes_frontmatter_type(
     template_context: dict[str, str],
 ) -> None:
     agents = render_template("AGENTS.md", template_context)
+    workflow_schema = render_template("schema/workflow.md", template_context)
     wiki_page_schema = render_template("schema/wiki-page.md", template_context)
     tags = render_template("wiki-tags.md", template_context)
 
@@ -910,6 +913,11 @@ def test_generated_tag_policy_removes_frontmatter_type(
     assert "kebab-case" in agents
     assert "nested slash tags" not in agents
     assert "add it\nto `wiki/tags.md`" not in agents
+
+    assert "wiki/tags.md" in workflow_schema
+    assert "kebab-case" in workflow_schema
+    assert "nested slash tags" not in workflow_schema
+    assert "add it to `wiki/tags.md`" in workflow_schema
 
     assert "type: source | entity" not in wiki_page_schema
     assert "tags: []" in wiki_page_schema
@@ -931,7 +939,9 @@ def test_generated_log_schema_uses_progressive_disclosure(
     agents = render_template("AGENTS.md", template_context)
     log_schema = render_template("schema/log.md", template_context)
 
-    assert "Use the event schemas and examples in `schema/log.md`." in agents
+    assert (
+        "Use `schema/log.md` for `wiki/log.jsonl` event schemas and examples." in agents
+    )
     assert '"type":"ingest"' not in agents
     assert '"type":"schema-update"' not in agents
     assert "# Log Schema" in log_schema
@@ -943,15 +953,21 @@ def test_generated_page_templates_use_progressive_disclosure(
     template_context: dict[str, str],
 ) -> None:
     agents = render_template("AGENTS.md", template_context)
+    workflow_schema = render_template("schema/workflow.md", template_context)
     wiki_page_schema = render_template("schema/wiki-page.md", template_context)
     map_schema = render_template("schema/map.md", template_context)
 
+    assert "Use `schema/workflow.md`" in agents
     assert "Use `schema/wiki-page.md`" in agents
     assert "Use `schema/map.md`" in agents
+    assert "## Default workflow" not in agents
     assert "## Wiki page template" not in agents
     assert "## Map template" not in agents
     assert "source: `raw/path/to/source`" not in agents
     assert "## Related Outputs" not in agents
+
+    assert "## Default workflow" in workflow_schema
+    assert ".agents/skills/<skill-name>/SKILL.md" in workflow_schema
 
     assert "# Wiki Page Schema" in wiki_page_schema
     assert "source: `raw/path/to/source`" in wiki_page_schema

@@ -87,6 +87,7 @@ knowledge-vault/
 +-- inbox/               # incoming material awaiting review
 +-- archives/             # retired material
 +-- schema/              # schema and policy documents
+|   +-- workflow.md      # vault maintenance workflow
 |   +-- log.md           # wiki/log.jsonl event schemas
 |   +-- wiki-page.md     # wiki/*.md page template
 |   +-- map.md           # wiki/maps/*.md map template

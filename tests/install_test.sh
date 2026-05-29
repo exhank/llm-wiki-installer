@@ -417,6 +417,7 @@ test_full_install_generates_expected_layout() {
   assert_file "$target/wiki/index.md"
   assert_file "$target/wiki/tags.md"
   assert_file "$target/wiki/log.jsonl"
+  assert_file "$target/schema/workflow.md"
   assert_file "$target/schema/log.md"
   assert_file "$target/schema/wiki-page.md"
   assert_file "$target/schema/map.md"

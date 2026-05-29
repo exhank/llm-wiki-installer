@@ -15,6 +15,7 @@ This is an LLM-native Obsidian Markdown knowledge vault.
 - `outputs/` contains current deliverables.
 - `archives/` contains inactive old outputs.
 - `schema/` is reserved for schema and policy documents that guide LLM maintenance.
+- `schema/workflow.md` defines detailed vault maintenance workflow.
 - `schema/log.md` defines the detailed `wiki/log.jsonl` event schemas.
 - `schema/wiki-page.md` defines the detailed `wiki/*.md` page template.
 - `schema/map.md` defines the detailed `wiki/maps/*.md` map template.
@@ -30,6 +31,7 @@ wiki/tags.md flat kebab-case tag registry
 outputs/   final deliverables
 archives/   inactive old outputs only
 schema/
+  workflow.md vault maintenance workflow
   log.md   wiki/log.jsonl event schemas
   wiki-page.md wiki/*.md page template
   map.md   wiki/maps/*.md map template

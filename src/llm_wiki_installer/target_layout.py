@@ -29,6 +29,7 @@ GENERATED_FILES = (
     ("wiki/index.md", "wiki-index.md"),
     ("wiki/tags.md", "wiki-tags.md"),
     ("wiki/log.jsonl", "wiki-log.jsonl"),
+    ("schema/workflow.md", "schema/workflow.md"),
     ("schema/log.md", "schema/log.md"),
     ("schema/wiki-page.md", "schema/wiki-page.md"),
     ("schema/map.md", "schema/map.md"),
