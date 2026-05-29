@@ -18,41 +18,29 @@ review every change through Git.
 It is not itself an initialized vault. This repository builds the generator; the
 generated vault lives in a separate target repository.
 
-## 30-Second Start
+## Quick Start
 
-Create a vault with one command:
-
-```bash
-uvx --python 3.13 llm-wiki-installer --no-interactive ./knowledge-vault
-```
-
-Inspect the generated vault:
+From the empty directory you want to turn into an `llm-wiki` vault, run:
 
 ```bash
-cd knowledge-vault
-bash .scripts/postrun.sh
-git status --short
+/bin/bash -c "$(curl -fsSL "https://raw.githubusercontent.com/exhank/llm-wiki-installer/$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/exhank/llm-wiki-installer/releases/latest | sed 's#.*/tag/##')/install.sh")"
 ```
 
-Preview the same install without writing files or running network steps:
+The default flow is interactive. It shows selectors for dependency tools and
+upstream Skills, with all options selected by default. When no target path is
+provided, the installer writes the vault into the current directory.
+
+If you use `uv`, the package is also published on PyPI as
+[`llm-wiki-installer`](https://pypi.org/project/llm-wiki-installer/):
 
 ```bash
-uvx --python 3.13 llm-wiki-installer --dry-run --json .
+uvx --python 3.13 llm-wiki-installer
 ```
 
-The package is published on PyPI as
-[`llm-wiki-installer`](https://pypi.org/project/llm-wiki-installer/).
 For pinned automation, include the package version you want to reproduce:
 
 ```bash
-uvx --python 3.13 llm-wiki-installer==<version> --dry-run --json /path/to/knowledge-vault
-```
-
-If you do not use `uv`, the release-pinned shell bootstrap can resolve the
-latest GitHub release tag and install in one line:
-
-```bash
-/bin/bash -c "$(curl -fsSL "https://raw.githubusercontent.com/exhank/llm-wiki-installer/$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/exhank/llm-wiki-installer/releases/latest | sed 's#.*/tag/##')/install.sh")" -- --no-interactive ./knowledge-vault
+uvx --python 3.13 llm-wiki-installer==<version> --no-interactive /path/to/knowledge-vault
 ```
 
 ## Why This Exists

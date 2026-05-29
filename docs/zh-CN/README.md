@@ -7,40 +7,27 @@ Markdown 知识库仓库。生成后的 vault 使用 Git 审核变更，用 `raw
 本仓库不是知识库本身，而是安装器。安装器会把固定目录、AGENTS 策略、辅助
 脚本、qmd 配置和可选上游 Skills 写入另一个目标仓库。
 
-## 30 秒开始
+## Quick Start
 
-推荐使用已经发布到 PyPI 的入口，一行生成 vault：
+进入你想作为 vault 根目录的空目录，然后运行一行安装命令：
 
 ```bash
-uvx --python 3.13 llm-wiki-installer --no-interactive ./knowledge-vault
+/bin/bash -c "$(curl -fsSL "https://raw.githubusercontent.com/exhank/llm-wiki-installer/$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/exhank/llm-wiki-installer/releases/latest | sed 's#.*/tag/##')/install.sh")"
 ```
 
-然后检查生成结果：
+默认流程是交互式的。安装器会显示依赖工具和上游 Skills 的选择器，并默认全
+选。没有传入目标路径时，安装器会把 vault 生成到当前目录。
+
+如果你使用 `uv`，也可以运行已经发布到 PyPI 的入口：
 
 ```bash
-cd knowledge-vault
-bash .scripts/postrun.sh
-git status --short
-```
-
-先预览计划，不写文件、不联网：
-
-```bash
-uvx --python 3.13 llm-wiki-installer --dry-run --json .
+uvx --python 3.13 llm-wiki-installer
 ```
 
 需要固定版本时：
 
 ```bash
-uvx --python 3.13 llm-wiki-installer==<version> --dry-run --json /path/to/knowledge-vault
-```
-
-如果目标机器不用 `uv`，也可以使用 release-pinned shell bootstrap。下面这
-一行会从 [GitHub Releases](https://github.com/exhank/llm-wiki-installer/releases/latest)
-解析最新 release tag：
-
-```bash
-/bin/bash -c "$(curl -fsSL "https://raw.githubusercontent.com/exhank/llm-wiki-installer/$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/exhank/llm-wiki-installer/releases/latest | sed 's#.*/tag/##')/install.sh")" -- --no-interactive ./knowledge-vault
+uvx --python 3.13 llm-wiki-installer==<version> --no-interactive /path/to/knowledge-vault
 ```
 
 ## 生成的目录
