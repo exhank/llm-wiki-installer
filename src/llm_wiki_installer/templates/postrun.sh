@@ -68,6 +68,6 @@ fi
 {{QMD_POSTRUN_CHECK}}
 
 echo "-- Diff stat --"
-git diff --stat || true
+git --no-pager diff --stat || true
 
 echo "Post-run OK. Review diff before commit."

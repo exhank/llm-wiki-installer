@@ -63,8 +63,8 @@ wiki/log.md
 ```bash
 bash .scripts/postrun.sh
 bash .scripts/check-index-log.sh
-git diff --stat
-git diff
+git --no-pager diff --stat
+git --no-pager diff
 ```
 
 ### Commit

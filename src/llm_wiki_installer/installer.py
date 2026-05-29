@@ -84,7 +84,12 @@ def run_install(options: Options) -> None:
         cwd=target,
         quiet=options.json_output,
     )
-    run(["git", "diff", "--stat"], cwd=target, check=False, quiet=options.json_output)
+    run(
+        ["git", "--no-pager", "diff", "--stat"],
+        cwd=target,
+        check=False,
+        quiet=options.json_output,
+    )
 
     log("Done", quiet=options.json_output)
     result = {

@@ -195,7 +195,26 @@ EOF_QMD
   cat >"$bin/curl" <<'EOF_CURL'
 #!/usr/bin/env bash
 set -euo pipefail
-printf '%s' "${STUB_LATEST_RELEASE_URL:-https://github.com/exhank/llm-wiki-installer/releases/tag/v9.8.7}"
+url="${*: -1}"
+case "$url" in
+  *github.com/exhank/llm-wiki-installer/releases/latest)
+    printf '%s' "${STUB_LATEST_RELEASE_URL:-https://github.com/exhank/llm-wiki-installer/releases/tag/v9.8.7}"
+    ;;
+  *raw.githubusercontent.com/exhank/llm-wiki-installer/*/install.sh)
+    if [ -n "${TEST_CURL_LOG:-}" ]; then
+      echo "curl $url" >>"$TEST_CURL_LOG"
+    fi
+    if [ -z "${TEST_CURL_RAW_INSTALL_SOURCE:-}" ]; then
+      echo "TEST_CURL_RAW_INSTALL_SOURCE is required for raw install.sh requests" >&2
+      exit 2
+    fi
+    cat "$TEST_CURL_RAW_INSTALL_SOURCE"
+    ;;
+  *)
+    echo "unexpected curl URL: $url" >&2
+    exit 2
+    ;;
+esac
 EOF_CURL
 
   cat >"$bin/git" <<'EOF_GIT'
@@ -221,6 +240,10 @@ fi
 while [ "${1:-}" = "-c" ]; do
   shift 2
 done
+
+if [ "${1:-}" = "--no-pager" ]; then
+  shift
+fi
 
 cmd="${1:-}"
 case "$cmd" in
@@ -380,6 +403,37 @@ test_streamed_bootstrap_defaults_to_latest_release_ref() {
 
   assert_contains "$out" '"action": "dry-run"'
   assert_contains "$git_log" "fetch -q --depth 1 origin v9.8.7"
+}
+
+test_readme_one_line_curl_install_command() {
+  setup_case readme-one-line-curl
+  local out="$CASE_DIR/out.txt"
+  local curl_log="$CASE_DIR/curl.log"
+  local git_log="$CASE_DIR/git.log"
+  local qmd_log="$CASE_DIR/qmd.log"
+  local target="$CASE_DIR/vault"
+
+  TEST_CURL_RAW_INSTALL_SOURCE="$ROOT/install.sh" \
+    TEST_CURL_LOG="$curl_log" \
+    TEST_GIT_BOOTSTRAP_SOURCE="$ROOT" \
+    TEST_GIT_BOOTSTRAP_LOG="$git_log" \
+    TEST_QMD_LOG="$qmd_log" \
+    run_with_stubs /bin/bash -c \
+      '/bin/bash -c "$(curl -fsSL "https://raw.githubusercontent.com/exhank/llm-wiki-installer/$(curl -fsSLI -o /dev/null -w '\''%{url_effective}'\'' https://github.com/exhank/llm-wiki-installer/releases/latest | sed '\''s#.*/tag/##'\'')/install.sh")" -- --no-interactive "$1"' \
+      _ "$target" >"$out" 2>&1
+
+  local canonical_target=""
+  canonical_target="$(cd "$target" && pwd -P)"
+
+  assert_file "$target/AGENTS.md"
+  assert_file "$target/.agents/skill-manifest.json"
+  assert_file "$target/.agents/skills/upstream/Ar9av/ar9av-skill/SKILL.md"
+  assert_file "$target/.agents/skills/upstream/kepano/kepano-skill/SKILL.md"
+  assert_contains "$curl_log" "raw.githubusercontent.com/exhank/llm-wiki-installer/v9.8.7/install.sh"
+  assert_contains "$git_log" "fetch -q --depth 1 origin v9.8.7"
+  assert_contains "$qmd_log" "qmd collection add $canonical_target --name knowledge-vault"
+  assert_contains "$target/.scripts/postrun.sh" "git --no-pager diff --stat"
+  assert_contains "$out" "Generated llm-wiki knowledge vault at: $canonical_target"
 }
 
 test_refuses_generator_directory() {
@@ -723,6 +777,7 @@ main() {
   run_test test_lib_only_mode_exits_without_bootstrap
   run_test test_streamed_bootstrap_is_quiet_for_json_output
   run_test test_streamed_bootstrap_defaults_to_latest_release_ref
+  run_test test_readme_one_line_curl_install_command
   run_test test_refuses_generator_directory
   run_test test_refuses_generator_child_directory
   run_test test_refuses_generator_lookalike

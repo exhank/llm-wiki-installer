@@ -21,8 +21,16 @@ def test_release_notes_config_exists() -> None:
 
 def test_readme_pypi_badge_targets_published_project() -> None:
     readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+    init_text = (REPO_ROOT / "src/llm_wiki_installer/__init__.py").read_text(
+        encoding="utf-8"
+    )
+    version_match = re.search(r'__version__ = "([^"]+)"', init_text)
 
-    assert "img.shields.io/pypi/v/llm-wiki-installer.svg?cacheSeconds=60" in readme
+    assert version_match
+    assert (
+        "img.shields.io/pypi/v/llm-wiki-installer"
+        f"?label=PyPI&cacheSeconds=300&release={version_match.group(1)}"
+    ) in readme
     assert "https://pypi.org/project/llm-wiki-installer/" in readme
 
 

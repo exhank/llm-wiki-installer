@@ -260,8 +260,8 @@ After any write operation, run:
 ```bash
 bash .scripts/postrun.sh
 bash .scripts/check-index-log.sh
-git diff --stat
-git diff
+git --no-pager diff --stat
+git --no-pager diff
 ```
 
 If a check fails, fix the issue and rerun the checks.

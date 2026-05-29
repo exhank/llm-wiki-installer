@@ -1052,9 +1052,23 @@ def test_run_install_orchestrates_installer_flow(
         "qmd",
         "bash .scripts/postrun.sh",
         "bash .scripts/check-index-log.sh",
-        "git diff --stat",
+        "git --no-pager diff --stat",
     ]
     assert target.is_dir()
+
+
+def test_generated_review_commands_disable_git_pager(
+    template_context: dict[str, str],
+) -> None:
+    postrun = render_template("postrun.sh", template_context)
+    readme = render_template("README.md", template_context)
+    agents = render_template("AGENTS.md", template_context)
+
+    assert "git --no-pager diff --stat || true" in postrun
+    assert "git --no-pager diff --stat" in readme
+    assert "git --no-pager diff" in readme
+    assert "git --no-pager diff --stat" in agents
+    assert "git --no-pager diff" in agents
 
 
 def test_run_install_skips_qmd_when_unselected(

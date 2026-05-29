@@ -789,8 +789,8 @@ After any write operation, run:
 ```bash
 bash .scripts/postrun.sh
 bash .scripts/check-index-log.sh
-git diff --stat
-git diff
+git --no-pager diff --stat
+git --no-pager diff
 ```
 
 If a check fails, fix the issue and rerun the checks.
@@ -879,7 +879,7 @@ fi
 {{QMD_POSTRUN_CHECK}}
 
 echo "-- Diff stat --"
-git diff --stat || true
+git --no-pager diff --stat || true
 
 echo "Post-run OK. Review diff before commit."
 ```
@@ -1095,8 +1095,8 @@ rg --files | fzf
 ```bash
 bash .scripts/postrun.sh
 bash .scripts/check-index-log.sh
-git diff --stat
-git diff
+git --no-pager diff --stat
+git --no-pager diff
 ```
 
 ### Commit
@@ -1240,5 +1240,5 @@ installed upstream skills
 tool versions
 checks run
 failures, if any
-git diff --stat
+git --no-pager diff --stat
 ```

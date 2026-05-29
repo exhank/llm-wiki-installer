@@ -628,8 +628,8 @@ After writes, run:
 ```bash
 bash .scripts/postrun.sh
 bash .scripts/check-index-log.sh
-git diff --stat
-git diff
+git --no-pager diff --stat
+git --no-pager diff
 ```
 
 If a check fails, the LLM must report the failure reason, fix it, and retry. It must not claim success.
