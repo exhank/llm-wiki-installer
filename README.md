@@ -38,10 +38,10 @@ uvx --python 3.13 llm-wiki-installer --dry-run --json .
 
 The package is published on PyPI as
 [`llm-wiki-installer`](https://pypi.org/project/llm-wiki-installer/).
-For pinned automation, include the package version:
+For pinned automation, include the package version you want to reproduce:
 
 ```bash
-uvx --python 3.13 llm-wiki-installer==0.1.0 --dry-run --json /path/to/knowledge-vault
+uvx --python 3.13 llm-wiki-installer==<version> --dry-run --json /path/to/knowledge-vault
 ```
 
 ## Why This Exists
@@ -112,25 +112,26 @@ uvx --python 3.13 llm-wiki-installer /path/to/knowledge-vault
 Pin the package version for repeatable automation:
 
 ```bash
-uvx --python 3.13 llm-wiki-installer==0.1.0 /path/to/knowledge-vault
+uvx --python 3.13 llm-wiki-installer==<version> /path/to/knowledge-vault
 ```
 
 Install into the current directory with a release-pinned one-line shell
-bootstrap:
+bootstrap by substituting the latest release tag from
+[GitHub Releases](https://github.com/exhank/llm-wiki-installer/releases/latest):
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/v0.1.0/install.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/<latest-tag>/install.sh)"
 ```
 
 Pass installer options through the same pattern:
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/v0.1.0/install.sh)" -- --force
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/<latest-tag>/install.sh)" -- --force
 ```
 
-The streamed launcher also clones release ref `v0.1.0` by default. Set
-`LLM_WIKI_INSTALLER_REF` only when intentionally testing another ref. Using the
-release tag in the curl URL and the launcher ref keeps the bootstrap path
+The streamed launcher also clones the release ref embedded in that launcher.
+Set `LLM_WIKI_INSTALLER_REF` only when intentionally testing another ref. Using
+the same release tag in the curl URL and launcher ref keeps the bootstrap path
 anchored to the same published source.
 
 The `uvx` entry point uses the PyPI package and runs the same installer CLI as

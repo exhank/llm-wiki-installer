@@ -26,6 +26,15 @@ def test_readme_pypi_badge_targets_published_project() -> None:
     assert "https://pypi.org/project/llm-wiki-installer/" in readme
 
 
+def test_readme_uses_latest_version_placeholders_for_user_commands() -> None:
+    readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+
+    assert "llm-wiki-installer==0.1.0" not in readme
+    assert "raw.githubusercontent.com/exhank/llm-wiki-installer/v0.1.0" not in readme
+    assert "llm-wiki-installer==<version>" in readme
+    assert "llm-wiki-installer/<latest-tag>/install.sh" in readme
+
+
 def test_github_actions_are_pinned_to_full_commit_shas() -> None:
     workflow_text = "\n".join(
         path.read_text(encoding="utf-8")

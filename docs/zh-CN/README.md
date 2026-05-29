@@ -28,13 +28,16 @@ uvx --python 3.13 llm-wiki-installer --dry-run --json .
 需要固定版本时：
 
 ```bash
-uvx --python 3.13 llm-wiki-installer==0.1.0 --dry-run --json /path/to/knowledge-vault
+uvx --python 3.13 llm-wiki-installer==<version> --dry-run --json /path/to/knowledge-vault
 ```
 
-如果目标机器不用 `uv`，也可以使用 release-pinned shell bootstrap：
+如果目标机器不用 `uv`，也可以使用 release-pinned shell bootstrap。把
+`<latest-tag>` 替换成
+[GitHub Releases](https://github.com/exhank/llm-wiki-installer/releases/latest)
+里的最新 release tag：
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/v0.1.0/install.sh)" -- --no-interactive
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/<latest-tag>/install.sh)" -- --no-interactive
 ```
 
 ## 生成的目录
