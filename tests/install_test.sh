@@ -411,6 +411,7 @@ test_full_install_generates_expected_layout() {
   assert_dir "$target/wiki/maps"
   assert_dir "$target/outputs"
   assert_dir "$target/archives"
+  assert_dir "$target/schema"
   assert_file "$target/AGENTS.md"
   assert_file "$target/README.md"
   assert_file "$target/wiki/index.md"

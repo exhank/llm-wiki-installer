@@ -14,6 +14,7 @@ This is an LLM-native Obsidian Markdown knowledge vault.
 - `wiki/log.jsonl` is the append-only JSONL audit ledger.
 - `outputs/` contains current deliverables.
 - `archives/` contains inactive old outputs.
+- `schema/` is reserved for schema and policy documents that guide LLM maintenance.
 
 ## Directory guide
 
@@ -25,6 +26,7 @@ wiki/      compiled long-term Markdown knowledge
 wiki/tags.md flat kebab-case tag registry
 outputs/   final deliverables
 archives/   inactive old outputs only
+schema/    schema and policy documents
 ```
 
 ## Common operations

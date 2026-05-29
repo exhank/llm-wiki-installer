@@ -56,6 +56,7 @@ The setup wrapper must generate these paths at repository root:
 │  └─ log.jsonl
 ├─ outputs/
 ├─ archives/
+├─ schema/
 ├─ AGENTS.md
 ├─ README.md
 ├─ .agents/
@@ -412,10 +413,13 @@ The goal is to maintain a durable Markdown wiki compiled from user-approved raw 
 - `wiki/log.jsonl` is the append-only JSONL audit ledger.
 - `outputs/` contains current final deliverables and exports.
 - `archives/` contains temporarily inactive old outputs only.
+- `schema/` is reserved for schema and policy documents that define how the wiki is structured and maintained.
 - `.agents/skills/` contains installed upstream skills, flattened by skill name.
 - `.codex/config.toml` and `.codex/hooks.json` contain Codex adapter configuration.
 - `.scripts/` contains fixed project scripts.
 - `.obsidian/` contains stable Obsidian settings, pinned community plugin assets, and the Things theme.
+
+The schema is the key configuration layer for LLM wiki maintenance. Schema documents, such as `AGENTS.md` for Codex or `CLAUDE.md` for Claude Code, tell the LLM how the wiki is structured, what conventions to follow, and which workflows to use when ingesting sources, answering questions, or maintaining the wiki. This is what makes the LLM a disciplined wiki maintainer rather than a generic chatbot. The user and the LLM should co-evolve these documents over time as the vault's domain conventions become clearer.
 
 ## Forbidden paths
 
@@ -872,6 +876,7 @@ This is an LLM-native Obsidian Markdown knowledge vault.
 - `wiki/log.jsonl` is the append-only JSONL audit ledger.
 - `outputs/` contains current deliverables.
 - `archives/` contains inactive old outputs.
+- `schema/` is reserved for schema and policy documents that guide LLM maintenance.
 
 ## Directory guide
 
@@ -883,6 +888,7 @@ wiki/      compiled long-term Markdown knowledge
 wiki/tags.md flat kebab-case tag registry
 outputs/   final deliverables
 archives/   inactive old outputs only
+schema/    schema and policy documents
 ```
 
 ## Common operations

@@ -103,6 +103,7 @@ retrieval accelerator = wiki/index.md + wiki/maps/ + rg + fzf
 │  └─ log.jsonl                 # append-only JSONL compilation and change ledger
 ├─ outputs/                     # current final deliverables, exports, externally facing artifacts
 ├─ archives/                     # old outputs that are not currently needed; not a knowledge archive
+├─ schema/                       # schema and policy documents for LLM wiki maintenance
 ├─ AGENTS.md                    # repository-level canonical agent policy
 ├─ README.md                    # human entry point: operations guide, design idea, directory explanation
 ├─ .agents/
@@ -149,6 +150,7 @@ examples/
 | `wiki/log.jsonl` | append-only JSONL compilation and change ledger | append-only | audit record; does not replace Git log |
 | `outputs/` | current deliverables | writable within a clear task | regenerable; archivable |
 | `archives/` | cold storage for old outputs | writable within a clear archive task | does not carry knowledge structure |
+| `schema/` | schema and policy documents that define wiki structure, conventions, and workflows | writable within a clear schema/policy update task | co-evolves with the user and LLM as domain conventions mature |
 | `.agents/skills/` | selected upstream Skills, flattened by skill name | maintained by setup | generated during setup/update |
 | `.codex/config.toml` | Codex adapter config | maintained by adapter | does not carry long-term rules |
 | `.codex/hooks.json` | Codex project hook config | maintained by adapter | does not carry long-term rules |

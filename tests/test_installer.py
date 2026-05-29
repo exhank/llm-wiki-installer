@@ -252,6 +252,7 @@ def test_run_install_dry_run_json_outputs_plan(
     assert plan["target"] == str(target.resolve())
     assert plan["selectedTools"] == ["rg"]
     assert plan["selectedSkills"] == []
+    assert "schema" in plan["wouldCreateDirectories"]
 
 
 def test_run_install_offline_dry_run_defaults_to_no_upstream_skills(

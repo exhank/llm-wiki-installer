@@ -16,6 +16,7 @@ REQUIRED_DIRECTORIES = (
     "wiki/maps",
     "outputs",
     "archives",
+    "schema",
     ".agents/skills",
     ".scripts",
     ".obsidian/plugins/obsidian-git",
