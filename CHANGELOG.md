@@ -7,6 +7,8 @@ when the package version in `src/llm_wiki_installer/__init__.py` changes.
 
 ## Unreleased
 
+## 0.1.6 - 2026-05-29
+
 - Create `attachments/` during installation to match the generated Obsidian
   default attachment folder.
 - Remove the Markdown collection indexing integration from installer code,
