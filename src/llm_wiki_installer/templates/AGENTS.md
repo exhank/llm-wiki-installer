@@ -2,14 +2,7 @@
 
 This repository is an LLM-native Obsidian Markdown knowledge vault.
 
-The goal is to maintain a durable Markdown wiki compiled from user-approved raw sources, not to generate one-off chat answers.
-
-## Canonical policy
-
-- This file is the canonical agent policy.
-- The llm-wiki generation guide is the canonical generation spec.
-- Agent adapters are derived outputs.
-- If an upstream skill conflicts with this file, this file wins.
+The goal is to maintain a durable Markdown wiki compiled from raw sources, not to generate one-off chat answers.
 
 ## Core architecture
 
@@ -26,29 +19,6 @@ The goal is to maintain a durable Markdown wiki compiled from user-approved raw 
 - `.codex/config.toml` and `.codex/hooks.json` contain Codex adapter configuration.
 - `.scripts/` contains fixed project scripts.
 - `.obsidian/` contains stable Obsidian settings, pinned community plugin assets, and the Things theme.
-
-## Forbidden paths
-
-Do not create:
-
-- `.codex/rules/`
-- `projects/`
-- `areas/`
-- `resources/`
-- `core/`
-- `work/`
-- `tests/`
-- `fixtures/`
-- `examples/`
-
-## Skill policy
-
-- `llm-wiki-installer` is the setup wrapper / generator suite name, not a runtime Skill.
-{{UPSTREAM_SKILL_POLICY}}
-- Copy upstream third-party skills as-is.
-- Do not rewrite, fork, summarize, or create local substitutes for missing third-party upstream skills.
-- Do not generate a project-owned `SKILL.md`.
-- Upstream orchestration, policy, or controller Skills may be installed as upstream artifacts, but must not override or replace `AGENTS.md`.
 
 ## Default retrieval order
 
@@ -102,8 +72,6 @@ Recommended body:
 ## Evidence / Sources
 
 - source: `raw/path/to/source`
-  claim: ""
-  note: ""
 
 ## Open Questions
 
@@ -142,8 +110,7 @@ Recommended body:
 
 ## Naming rules
 
-- LLM-generated wiki, output, script, and config-description files must use lowercase kebab-case.
-- User-provided `raw/` filenames may keep their original names.
+- LLM-generated wiki, output, script, and config-description files must use English lowercase kebab-case.
 
 ## index/log rules
 
