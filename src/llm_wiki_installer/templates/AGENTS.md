@@ -2,8 +2,6 @@
 
 This repository is an LLM-native Obsidian Markdown knowledge vault.
 
-The goal is to maintain a durable Markdown wiki compiled from raw sources, not to generate one-off chat answers.
-
 ## Core architecture
 
 - `inbox/` is the low-friction unprocessed capture buffer. Agents may write to it.
@@ -22,7 +20,11 @@ The goal is to maintain a durable Markdown wiki compiled from raw sources, not t
 - `.scripts/` contains fixed project scripts.
 - `.obsidian/` contains stable Obsidian settings, pinned community plugin assets, and the Things theme.
 
-The schema is the key configuration layer for LLM wiki maintenance. Schema documents, such as `AGENTS.md` for Codex or `CLAUDE.md` for Claude Code, tell the LLM how the wiki is structured, what conventions to follow, and which workflows to use when ingesting sources, answering questions, or maintaining the wiki. This is what makes the LLM a disciplined wiki maintainer rather than a generic chatbot. The user and the LLM should co-evolve these documents over time as the vault's domain conventions become clearer.
+The schema is the key configuration layer for LLM wiki maintenance. Schema documents tell the LLM how the wiki is structured, what conventions to follow, and which workflows to use when ingesting sources, answering questions, or maintaining the wiki. This is what makes the LLM a disciplined wiki maintainer rather than a generic chatbot. The user and the LLM should co-evolve these documents over time as the vault's domain conventions become clearer.
+
+## Naming rules
+
+LLM-generated wiki, output, script, and config-description files must use English lowercase kebab-case.
 
 ## Default retrieval order
 
@@ -68,19 +70,6 @@ existing tag whenever possible. If a new tag is needed, add it to
 Vault-wide tag redesigns are schema/policy migrations: update `wiki/tags.md`,
 affected page frontmatter, `wiki/index.md` when navigation changes, and append
 a `schema-update` entry to `wiki/log.jsonl`.
-
-## Naming rules
-
-- LLM-generated wiki, output, script, and config-description files must use English lowercase kebab-case.
-
-## index/log rules
-
-Fail and fix if:
-
-- `wiki/` content changed but `wiki/index.md` was not updated.
-- `wiki/` content changed but `wiki/log.jsonl` was not updated.
-- Any file was deleted, moved, or renamed but `wiki/log.jsonl` was not updated.
-- Any `raw/` file changed but `wiki/log.jsonl` was not updated.
 
 ## Log entry schemas
 
