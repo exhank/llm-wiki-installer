@@ -493,6 +493,8 @@ def test_write_generated_files_preserves_existing_files_without_force(
 
     assert readme.read_text(encoding="utf-8") == "custom readme\n"
     assert (tmp_path / "AGENTS.md").is_file()
+    assert (tmp_path / ".codex/hooks.json").is_file()
+    assert not (tmp_path / ".codex/hooks").exists()
     assert (tmp_path / ".obsidian/app.json").is_file()
     assert (tmp_path / ".obsidian/plugins/obsidian-git/main.js").is_file()
     assert not (tmp_path / ".obsidian/workspace.json").exists()

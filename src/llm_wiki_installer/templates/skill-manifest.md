@@ -62,6 +62,7 @@ Generated: {{TODAY}}
 - .obsidian/themes/Things/manifest.json
 - .obsidian/themes/Things/theme.css
 - .codex/config.toml
+- .codex/hooks.json
 - .agents/skill-manifest.md
 - .agents/skill-manifest.json
 - .gitignore

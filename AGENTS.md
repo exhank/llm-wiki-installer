@@ -135,7 +135,7 @@ Run focused tests with:
   `src/llm_wiki_installer/templates/`.
 - The generated target layout currently includes `inbox/`, `raw/`, `wiki/`,
   `wiki/maps/`, `outputs/`, `archive/`, `.agents/skills/upstream/`,
-  `.codex/hooks/`, `.scripts/`, root `AGENTS.md`, root `README.md`,
+  `.codex/hooks.json`, `.scripts/`, root `AGENTS.md`, root `README.md`,
   `.agents/skill-manifest.md`, `.agents/skill-manifest.json`,
   `.codex/config.toml`, `wiki/index.md`, `wiki/log.md`, `.gitignore`, and the
   generated scripts.

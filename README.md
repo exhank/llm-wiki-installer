@@ -88,7 +88,9 @@ knowledge-vault/
 |   +-- skill-manifest.md
 |   +-- skill-manifest.json
 |   +-- skills/          # flattened pinned third-party Skill artifacts
-+-- .codex/config.toml
++-- .codex/
+|   +-- config.toml      # Codex project config
+|   +-- hooks.json       # Codex project hook config
 +-- .scripts/            # verification helpers
 +-- .obsidian/           # stable Obsidian settings, theme, and pinned plugin assets
 ```
@@ -222,7 +224,7 @@ README.md
 .agents/skill-manifest.json
 .agents/skills/
 .codex/config.toml
-.codex/hooks/
+.codex/hooks.json
 .scripts/postrun.sh
 .scripts/check-index-log.sh
 .obsidian/

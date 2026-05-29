@@ -290,7 +290,7 @@ Repository root is the vault root and generation target.
 Codex must follow the repository policy without requiring a project-owned runtime Skill:
 
 ```text
-Codex adapter output = .codex/config.toml and optional .codex/hooks/
+Codex adapter output = .codex/config.toml and .codex/hooks.json
 canonical runtime policy = AGENTS.md
 canonical generation spec = this guide
 ```
@@ -298,7 +298,7 @@ canonical generation spec = this guide
 Adapter rules:
 
 ```text
-Do not put long-term rules in .codex/config.toml or hooks.
+Do not put long-term rules in .codex/config.toml or hooks.json.
 Do not generate a Codex adapter that makes upstream Skills override AGENTS.md.
 Hooks may call only the generated verification scripts.
 ```
@@ -446,6 +446,7 @@ Generated: YYYY-MM-DD
 - .obsidian/themes/Things/manifest.json
 - .obsidian/themes/Things/theme.css
 - .codex/config.toml
+- .codex/hooks.json
 - .agents/skill-manifest.md
 - .agents/skill-manifest.json
 - .gitignore
@@ -495,7 +496,7 @@ The goal is to maintain a durable Markdown wiki compiled from user-approved raw 
 - `archive/` contains temporarily inactive old outputs only.
 - `.agents/skills/` contains installed upstream skills, flattened by skill name.
 - `.agents/skill-manifest.md` and `.agents/skill-manifest.json` record installed skills and tool versions.
-- `.codex/hooks/` contains LLM hooks.
+- `.codex/config.toml` and `.codex/hooks.json` contain Codex adapter configuration.
 - `.scripts/` contains fixed project scripts.
 - `.obsidian/` contains stable Obsidian settings, pinned community plugin assets, and the Things theme.
 
@@ -1062,18 +1063,21 @@ An empty file or minimal config is acceptable, but it must not contain agent-spe
 
 ---
 
-## 13. Hook Generation Rules
+## 13. `.codex/hooks.json` Generation Requirements
 
-Directory:
+An empty hook configuration is acceptable, but it must be a valid Codex hooks
+configuration file.
 
-```text
-.codex/hooks/
+```json
+{
+  "hooks": {}
+}
 ```
 
 Rules:
 
 ```text
-Hooks are only LLM triggers.
+Hooks are only LLM triggers configured through .codex/hooks.json or inline config.toml hooks.
 Project-wide logic goes in .scripts/.
 Do not generate .codex/rules/.
 ```

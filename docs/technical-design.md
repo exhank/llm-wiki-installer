@@ -108,8 +108,8 @@ retrieval accelerator = wiki/index.md + wiki/maps/ + rg + fzf
 │  ├─ skill-manifest.md         # human-readable version pins, install state, skipped records
 │  └─ skill-manifest.json       # machine-readable version pins, install state, skipped records
 ├─ .codex/
-│  ├─ hooks/                    # LLM hook triggers; does not carry long-term rules
-│  └─ config.toml               # Codex adapter config
+│  ├─ config.toml               # Codex adapter config
+│  └─ hooks.json                # Codex project hook config
 ├─ .scripts/                    # fixed project scripts
 └─ .gitignore
 ```
@@ -149,7 +149,8 @@ examples/
 | `.agents/skills/` | selected upstream Skills, flattened by skill name | maintained by setup | recorded by manifest |
 | `.agents/skill-manifest.md` | selected upstream versions, skipped records, and generated artifacts lockfile | maintained by setup | updated on every setup/update |
 | `.agents/skill-manifest.json` | machine-readable mirror of installer, tool, upstream pin, and generated artifact state | maintained by setup | updated on every setup/update |
-| `.codex/hooks/` | LLM hook triggers | maintained by adapter | does not carry long-term rules |
+| `.codex/config.toml` | Codex adapter config | maintained by adapter | does not carry long-term rules |
+| `.codex/hooks.json` | Codex project hook config | maintained by adapter | does not carry long-term rules |
 | `.scripts/` | general project scripts | maintained by setup | reviewable and testable |
 | `.obsidian/` | stable Obsidian settings, pinned community plugin assets, and theme files | maintained by setup | workspace state remains ignored |
 
@@ -480,7 +481,7 @@ Agents may automatically maintain wiki/index.md.
 Agents may append wiki/log.md.
 Agents may write outputs/ within a clear task.
 Agents may write archive/ within a clear archive task.
-Agents may maintain .agents/skill-manifest.md, .scripts/, .codex/hooks/, and .codex/config.toml.
+Agents may maintain .agents/skill-manifest.md, .scripts/, .codex/hooks.json, and .codex/config.toml.
 Agents may maintain generated .obsidian settings and pinned asset templates when the generator contract changes.
 Agents may not write raw/ by default.
 Agents may not create .codex/rules/.

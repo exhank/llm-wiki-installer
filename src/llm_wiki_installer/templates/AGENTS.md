@@ -23,7 +23,7 @@ The goal is to maintain a durable Markdown wiki compiled from user-approved raw 
 - `archive/` contains temporarily inactive old outputs only.
 - `.agents/skills/` contains installed upstream skills, flattened by skill name.
 - `.agents/skill-manifest.md` and `.agents/skill-manifest.json` record installed skills and tool versions.
-- `.codex/hooks/` contains LLM hooks.
+- `.codex/config.toml` and `.codex/hooks.json` contain Codex adapter configuration.
 - `.scripts/` contains fixed project scripts.
 - `.obsidian/` contains stable Obsidian settings, pinned community plugin assets, and the Things theme.
 
