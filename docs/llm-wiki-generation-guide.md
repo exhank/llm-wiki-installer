@@ -53,10 +53,12 @@ The setup wrapper must generate these paths at repository root:
 ├─ wiki/
 │  ├─ maps/
 │  ├─ index.md
+│  ├─ tags.md
 │  └─ log.jsonl
 ├─ outputs/
 ├─ archives/
 ├─ schema/
+│  └─ log.md
 ├─ AGENTS.md
 ├─ README.md
 ├─ .agents/
@@ -564,42 +566,7 @@ Fail and fix if:
 Use append-only JSONL entries. Each line must be one complete JSON object.
 Use `timestamp` as a UTC ISO-8601 instant, include `schema_version`, and keep
 `reason` specific enough for later review.
-
-### ingest
-
-```json
-{"schema_version":1,"timestamp":"YYYY-MM-DDTHH:MM:SSZ","actor":"agent","type":"ingest","scope":"raw/source -> wiki/page.md","reason":"Compiled durable knowledge from raw source.","review":"self-reviewed","impact":{"index_updated":true,"references_checked":true},"files":["raw/source","wiki/page.md","wiki/index.md"]}
-```
-
-### fileback
-
-```json
-{"schema_version":1,"timestamp":"YYYY-MM-DDTHH:MM:SSZ","actor":"agent","type":"fileback","scope":"answer/output -> inbox/path.md","reason":"Saved user-requested output into the vault inbox.","review":"self-reviewed","impact":{"index_updated":"not-needed","references_checked":"not-needed"},"files":["inbox/path.md"]}
-```
-
-### delete
-
-```json
-{"schema_version":1,"timestamp":"YYYY-MM-DDTHH:MM:SSZ","actor":"agent","type":"delete","scope":"path/to/file.md","reason":"Why this file is safe to delete.","authorized_by":"user | explicit-task","review":"self-reviewed","impact":{"index_updated":false,"references_checked":true},"files":["path/to/file.md"]}
-```
-
-### move
-
-```json
-{"schema_version":1,"timestamp":"YYYY-MM-DDTHH:MM:SSZ","actor":"agent","type":"move","scope":"old/path.md -> new/path.md","reason":"Why this move is needed.","authorized_by":"user | explicit-task","review":"self-reviewed","impact":{"index_updated":true,"references_checked":true},"files":["old/path.md","new/path.md"]}
-```
-
-### archive-output
-
-```json
-{"schema_version":1,"timestamp":"YYYY-MM-DDTHH:MM:SSZ","actor":"agent","type":"archive-output","scope":"outputs/file.md -> archives/file.md","reason":"Old deliverable no longer active.","review":"self-reviewed","impact":{"index_updated":"not-needed","references_checked":true},"files":["outputs/file.md","archives/file.md"]}
-```
-
-### schema-update
-
-```json
-{"schema_version":1,"timestamp":"YYYY-MM-DDTHH:MM:SSZ","actor":"agent","type":"schema-update","scope":"path/to/schema-or-script","reason":"Changed vault schema, script, or policy contract.","review":"self-reviewed","impact":{"index_updated":"not-needed","references_checked":true},"files":["path/to/schema-or-script"]}
-```
+Use the event schemas and examples in `schema/log.md`.
 
 ## Required post-write checks
 
@@ -614,6 +581,33 @@ git --no-pager diff
 
 If a check fails, fix the issue and rerun the checks.
 ````
+
+---
+
+## 7. `schema/log.md` Generation Template
+
+Generate path:
+
+```text
+schema/log.md
+```
+
+The file is a Markdown schema document for `wiki/log.jsonl`. It must explain
+that the log is append-only JSONL, require UTC ISO-8601 `timestamp`,
+`schema_version`, `actor`, and reviewable `reason`, and include concrete
+single-line JSON examples for:
+
+```text
+ingest
+fileback
+delete
+move
+archive-output
+schema-update
+```
+
+Keep the examples synchronized with the log entry types accepted by
+`.scripts/check-index-log.sh`.
 
 ---
 
@@ -874,6 +868,7 @@ This is an LLM-native Obsidian Markdown knowledge vault.
 - `wiki/maps/` contains topic and project maps.
 - `wiki/tags.md` is the canonical flat kebab-case tag registry.
 - `wiki/log.jsonl` is the append-only JSONL audit ledger.
+- `schema/log.md` contains detailed `wiki/log.jsonl` event schemas.
 - `outputs/` contains current deliverables.
 - `archives/` contains inactive old outputs.
 - `schema/` is reserved for schema and policy documents that guide LLM maintenance.
@@ -888,7 +883,8 @@ wiki/      compiled long-term Markdown knowledge
 wiki/tags.md flat kebab-case tag registry
 outputs/   final deliverables
 archives/   inactive old outputs only
-schema/    schema and policy documents
+schema/
+  log.md   wiki/log.jsonl event schemas
 ```
 
 ## Common operations
@@ -995,7 +991,7 @@ The setup wrapper must run full verification:
 2. Generate all fixed artifacts.
 3. Verify the directory structure.
 4. Verify forbidden paths do not exist.
-5. Verify AGENTS.md contains the required frontmatter, tag, and log schemas.
+5. Verify AGENTS.md contains the required frontmatter, tag rules, and link to schema/log.md.
 6. Verify README.md contains the operations guide, design idea, and directory explanation.
 7. Verify .scripts/postrun.sh is executable.
 8. Verify .scripts/check-index-log.sh is executable.

@@ -29,6 +29,7 @@ GENERATED_FILES = (
     ("wiki/index.md", "wiki-index.md"),
     ("wiki/tags.md", "wiki-tags.md"),
     ("wiki/log.jsonl", "wiki-log.jsonl"),
+    ("schema/log.md", "schema/log.md"),
     (".codex/config.toml", "codex-config.toml"),
     (".codex/hooks.json", "codex-hooks.json"),
     (".scripts/postrun.sh", "postrun.sh"),

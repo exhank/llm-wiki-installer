@@ -104,6 +104,7 @@ retrieval accelerator = wiki/index.md + wiki/maps/ + rg + fzf
 ├─ outputs/                     # current final deliverables, exports, externally facing artifacts
 ├─ archives/                     # old outputs that are not currently needed; not a knowledge archive
 ├─ schema/                       # schema and policy documents for LLM wiki maintenance
+│  └─ log.md                     # detailed wiki/log.jsonl event schemas
 ├─ AGENTS.md                    # repository-level canonical agent policy
 ├─ README.md                    # human entry point: operations guide, design idea, directory explanation
 ├─ .agents/
@@ -151,6 +152,7 @@ examples/
 | `outputs/` | current deliverables | writable within a clear task | regenerable; archivable |
 | `archives/` | cold storage for old outputs | writable within a clear archive task | does not carry knowledge structure |
 | `schema/` | schema and policy documents that define wiki structure, conventions, and workflows | writable within a clear schema/policy update task | co-evolves with the user and LLM as domain conventions mature |
+| `schema/log.md` | detailed `wiki/log.jsonl` event schemas and examples | writable within a clear schema/policy update task | referenced by `AGENTS.md`; keeps detailed log policy progressively disclosed |
 | `.agents/skills/` | selected upstream Skills, flattened by skill name | maintained by setup | generated during setup/update |
 | `.codex/config.toml` | Codex adapter config | maintained by adapter | does not carry long-term rules |
 | `.codex/hooks.json` | Codex project hook config | maintained by adapter | does not carry long-term rules |
@@ -354,6 +356,10 @@ Ordinary read-only queries do not write to the log.
 ---
 
 ## 10. Log Entry Schemas
+
+Detailed generated log examples live in `schema/log.md`. `AGENTS.md` carries
+the high-level logging rules and points agents to this schema document when
+they need the full event shapes.
 
 ### 10.1 Delete File
 

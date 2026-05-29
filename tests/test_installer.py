@@ -253,6 +253,7 @@ def test_run_install_dry_run_json_outputs_plan(
     assert plan["selectedTools"] == ["rg"]
     assert plan["selectedSkills"] == []
     assert "schema" in plan["wouldCreateDirectories"]
+    assert "schema/log.md" in plan["wouldWriteFiles"]
 
 
 def test_run_install_offline_dry_run_defaults_to_no_upstream_skills(
@@ -465,6 +466,7 @@ def test_write_generated_files_preserves_existing_files_without_force(
     assert readme.read_text(encoding="utf-8") == "custom readme\n"
     assert (tmp_path / "AGENTS.md").is_file()
     assert (tmp_path / "wiki/tags.md").is_file()
+    assert (tmp_path / "schema/log.md").is_file()
     assert not (tmp_path / ".agents/skill-manifest.md").exists()
     assert not (tmp_path / ".agents/skill-manifest.json").exists()
     assert (tmp_path / ".codex/hooks.json").is_file()
@@ -909,6 +911,20 @@ def test_generated_tag_policy_removes_frontmatter_type(
     assert "Use `kebab-case`" in tags
     assert "type/source" in tags
     assert "model-evaluation" in tags
+
+
+def test_generated_log_schema_uses_progressive_disclosure(
+    template_context: dict[str, str],
+) -> None:
+    agents = render_template("AGENTS.md", template_context)
+    log_schema = render_template("schema/log.md", template_context)
+
+    assert "Use the event schemas and examples in `schema/log.md`." in agents
+    assert '"type":"ingest"' not in agents
+    assert '"type":"schema-update"' not in agents
+    assert "# Log Schema" in log_schema
+    assert '"type":"ingest"' in log_schema
+    assert '"type":"schema-update"' in log_schema
 
 
 def test_run_install_with_no_selected_tools(

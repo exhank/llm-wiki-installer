@@ -87,6 +87,7 @@ knowledge-vault/
 +-- inbox/               # incoming material awaiting review
 +-- archives/             # retired material
 +-- schema/              # schema and policy documents
+|   +-- log.md           # wiki/log.jsonl event schemas
 +-- AGENTS.md            # runtime policy for agents
 +-- .agents/
 |   +-- skills/          # flattened pinned third-party Skill artifacts
