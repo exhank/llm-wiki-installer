@@ -1,0 +1,21 @@
+changelog:
+  categories:
+    - title: Security
+      labels:
+        - security
+    - title: Installer Behavior
+      labels:
+        - installer
+        - generated-layout
+        - qmd
+        - upstream-skills
+    - title: Packaging
+      labels:
+        - packaging
+        - release
+    - title: Documentation
+      labels:
+        - documentation
+    - title: Maintenance
+      labels:
+        - "*"
