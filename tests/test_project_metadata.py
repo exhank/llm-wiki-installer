@@ -35,3 +35,15 @@ def test_github_actions_are_pinned_to_full_commit_shas() -> None:
 
     assert action_refs
     assert all(re.fullmatch(r"[0-9a-f]{40}", ref) for ref in action_refs)
+
+
+def test_release_workflow_uses_pypi_trusted_publishing() -> None:
+    release_workflow = (REPO_ROOT / ".github" / "workflows" / "release.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "environment: pypi" in release_workflow
+    assert "id-token: write" in release_workflow
+    assert "pypa/gh-action-pypi-publish@" in release_workflow
+    assert "password:" not in release_workflow
+    assert "api-token" not in release_workflow
