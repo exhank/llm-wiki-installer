@@ -5,11 +5,18 @@ All notable changes to this project will be documented here.
 This project follows a simple human-readable changelog. Versions are published
 when the package version in `src/llm_wiki_installer/__init__.py` changes.
 
-## Unreleased
+## 0.1.1 - 2026-05-29
 
 - Update user-facing documentation now that `llm-wiki-installer` is published
   on PyPI, making `uvx` the primary automation path.
 - Clarify that the PyPI Trusted Publisher is configured for future releases.
+- Restore one-line install guidance without hard-coding the current release
+  version in user-facing commands.
+- Suppress stderr for quiet subprocesses so streamed bootstrap and upstream
+  Skill Git operations do not leak clone or detached-HEAD noise during normal
+  installs.
+- Expand README credits for Obsidian, qmd, ripgrep, fzf, Git, Python, Node.js,
+  and upstream Skill maintainers.
 
 ## 0.1.0 - 2026-05-29
 

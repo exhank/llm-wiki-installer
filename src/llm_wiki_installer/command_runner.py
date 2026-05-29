@@ -23,7 +23,7 @@ def run(
     error: Optional[str] = None,
 ) -> subprocess.CompletedProcess[str]:
     stdout = subprocess.PIPE if capture else (subprocess.DEVNULL if quiet else None)
-    stderr = subprocess.PIPE if capture else None
+    stderr = subprocess.PIPE if capture else (subprocess.DEVNULL if quiet else None)
 
     try:
         result = subprocess.run(

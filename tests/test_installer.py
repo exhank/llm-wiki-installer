@@ -598,6 +598,24 @@ def test_run_captures_stdout() -> None:
     assert result.stdout == "hello\n"
 
 
+def test_run_quiet_suppresses_stdout_and_stderr(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    result = run(
+        [
+            sys.executable,
+            "-c",
+            "import sys; print('visible stdout'); print('visible stderr', file=sys.stderr)",
+        ],
+        quiet=True,
+    )
+
+    captured = capsys.readouterr()
+    assert result.returncode == 0
+    assert captured.out == ""
+    assert captured.err == ""
+
+
 def test_run_raises_installer_error_on_nonzero_exit() -> None:
     with pytest.raises(InstallerError, match="custom failure"):
         run(
