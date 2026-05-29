@@ -91,6 +91,27 @@ Run focused tests with:
 .venv/bin/python -m pytest tests/test_installer.py -k <pattern>
 ```
 
+## Workflow Discipline
+
+- Start from the user's requested change and inspect only the files needed to
+  understand that path. Prefer `rg` and focused file reads over broad repo
+  archaeology.
+- Before editing, identify the smallest contract affected: installer
+  orchestration, terminal UI, template context, generated layout, shell
+  launcher, upstream skills, or documentation-only behavior.
+- For narrow Python changes, run the most relevant focused pytest command
+  first, then broaden to the required stack only after the focused check passes.
+- For documentation-only changes that do not alter installer behavior,
+  templates, packaging metadata, or generated output contracts, a diff review is
+  usually sufficient. Do not run the full verification stack unless the change
+  touches an executable contract or the user asks for it.
+- When a test fails, rerun the smallest failing test or target while debugging.
+  Avoid repeating `make verify` until the focused failure is fixed.
+- If an earlier turn already established relevant context, reuse it instead of
+  rediscovering the same files. Check only what may have changed.
+- Report verification exactly: name the command that ran, or state that checks
+  were skipped because the change was documentation-only.
+
 ## Required Verification
 
 - For Python-only changes, run `make lint`, `make typecheck`, and `make test`.
