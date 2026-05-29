@@ -10,6 +10,7 @@ This is an LLM-native Obsidian Markdown knowledge vault.
 - `wiki/` is the compiled long-term Markdown knowledge layer.
 - `wiki/index.md` is the global entry.
 - `wiki/maps/` contains topic and project maps.
+- `wiki/tags.md` is the canonical flat kebab-case tag registry.
 - `wiki/log.jsonl` is the append-only JSONL audit ledger.
 - `outputs/` contains current deliverables.
 - `archives/` contains inactive old outputs.
@@ -21,6 +22,7 @@ inbox/     unprocessed input
 raw/       user-approved immutable source material
 attachments/ default Obsidian attachments
 wiki/      compiled long-term Markdown knowledge
+wiki/tags.md flat kebab-case tag registry
 outputs/   final deliverables
 archives/   inactive old outputs only
 ```
@@ -51,6 +53,7 @@ The agent must update:
 
 ```text
 wiki/index.md
+wiki/tags.md
 wiki/log.jsonl
 ```
 

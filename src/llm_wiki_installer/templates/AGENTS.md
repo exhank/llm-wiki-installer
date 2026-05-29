@@ -12,6 +12,7 @@ The goal is to maintain a durable Markdown wiki compiled from raw sources, not t
 - `wiki/` contains compiled long-term Markdown knowledge.
 - `wiki/maps/` contains topic, project, research, and learning maps.
 - `wiki/index.md` is the global machine-readable and human-readable index.
+- `wiki/tags.md` is the canonical flat kebab-case tag registry.
 - `wiki/log.jsonl` is the append-only JSONL audit ledger.
 - `outputs/` contains current final deliverables and exports.
 - `archives/` contains temporarily inactive old outputs only.
@@ -53,12 +54,22 @@ New `wiki/*.md` pages should use:
 ```yaml
 ---
 title: ""
-type: source | entity | concept | comparison | synthesis | question | map | decision | playbook | note
 tags: []
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 ---
 ```
+
+All new and edited wiki pages must follow `wiki/tags.md`. Use YAML `tags` lists
+with flat `kebab-case` values, without `#` prefixes or nested slash tags.
+Before introducing a tag, check `wiki/tags.md` and existing wiki frontmatter.
+Reuse an accurate existing tag whenever possible. If a new tag is needed, add it
+to `wiki/tags.md` in the same change.
+
+Small local tag additions are normal page edits. Vault-wide tag redesigns are
+schema/policy migrations: update `wiki/tags.md`, affected page frontmatter,
+`wiki/index.md` when navigation changes, and append a `schema-update` entry to
+`wiki/log.jsonl`.
 
 Recommended body:
 
@@ -85,8 +96,8 @@ New `wiki/maps/*.md` pages should use:
 ```yaml
 ---
 title: ""
-type: map
-tags: []
+tags:
+  - map
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 ---

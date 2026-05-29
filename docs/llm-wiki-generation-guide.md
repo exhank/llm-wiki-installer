@@ -33,6 +33,7 @@ The generated result must satisfy:
 technical design is concise and stable
 runtime rules are written into AGENTS.md
 templates are written into AGENTS.md and this guide
+wiki/tags.md is generated as the canonical flat kebab-case tag registry
 scripts are executable
 selected upstream Skills are installed
 test files and test artifacts are deleted after unit tests pass
@@ -112,7 +113,6 @@ All new `wiki/*.md` pages use this by default:
 ```yaml
 ---
 title: ""
-type: source | entity | concept | comparison | synthesis | question | map | decision | playbook | note
 tags: []
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
@@ -123,8 +123,9 @@ Rules:
 
 ```text
 wiki/index.md may omit frontmatter.
+wiki/tags.md is the canonical flat kebab-case tag registry.
 wiki/log.jsonl uses JSONL and does not use frontmatter.
-wiki/maps/*.md uses type: map.
+wiki/maps/*.md uses the map tag.
 Do not use complex nested metadata.
 Put Sources / Evidence in the body.
 ```
@@ -134,7 +135,6 @@ Put Sources / Evidence in the body.
 ```md
 ---
 title: ""
-type: note
 tags: []
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
@@ -162,8 +162,8 @@ updated: YYYY-MM-DD
 ```md
 ---
 title: ""
-type: map
-tags: []
+tags:
+  - map
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 ---
@@ -181,7 +181,16 @@ updated: YYYY-MM-DD
 ## Related Outputs
 ```
 
-### 3.4 File Naming Rules
+### 3.4 Tag Registry Template
+
+Generate `wiki/tags.md` as the canonical tag registry. It must require flat
+`kebab-case` YAML tags, prohibit nested slash tags and `#` prefixes in
+frontmatter, list core tags such as `source`, `concept`, `map`, and
+`decision`, and instruct LLMs to update the registry when introducing a tag.
+Vault-wide tag redesigns are schema/policy migrations and must update affected
+frontmatter, navigation when needed, and `wiki/log.jsonl`.
+
+### 3.5 File Naming Rules
 
 LLM-generated wiki, output, script, and config-description files must use lowercase kebab-case.
 
@@ -399,6 +408,7 @@ The goal is to maintain a durable Markdown wiki compiled from user-approved raw 
 - `wiki/` contains compiled long-term Markdown knowledge.
 - `wiki/maps/` contains topic, project, research, and learning maps.
 - `wiki/index.md` is the global machine-readable and human-readable index.
+- `wiki/tags.md` is the canonical flat kebab-case tag registry.
 - `wiki/log.jsonl` is the append-only JSONL audit ledger.
 - `outputs/` contains current final deliverables and exports.
 - `archives/` contains temporarily inactive old outputs only.
@@ -464,12 +474,22 @@ New `wiki/*.md` pages should use:
 ```yaml
 ---
 title: ""
-type: source | entity | concept | comparison | synthesis | question | map | decision | playbook | note
 tags: []
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 ---
 ```
+
+All new and edited wiki pages must follow `wiki/tags.md`. Use YAML `tags` lists
+with flat `kebab-case` values, without `#` prefixes or nested slash tags.
+Before introducing a tag, check `wiki/tags.md` and existing wiki frontmatter.
+Reuse an accurate existing tag whenever possible. If a new tag is needed, add it
+to `wiki/tags.md` in the same change.
+
+Small local tag additions are normal page edits. Vault-wide tag redesigns are
+schema/policy migrations: update `wiki/tags.md`, affected page frontmatter,
+`wiki/index.md` when navigation changes, and append a `schema-update` entry to
+`wiki/log.jsonl`.
 
 Recommended body:
 
@@ -498,8 +518,8 @@ New `wiki/maps/*.md` pages should use:
 ```yaml
 ---
 title: ""
-type: map
-tags: []
+tags:
+  - map
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 ---
@@ -848,6 +868,7 @@ This is an LLM-native Obsidian Markdown knowledge vault.
 - `wiki/` is the compiled long-term Markdown knowledge layer.
 - `wiki/index.md` is the global entry.
 - `wiki/maps/` contains topic and project maps.
+- `wiki/tags.md` is the canonical flat kebab-case tag registry.
 - `wiki/log.jsonl` is the append-only JSONL audit ledger.
 - `outputs/` contains current deliverables.
 - `archives/` contains inactive old outputs.
@@ -859,6 +880,7 @@ inbox/     unprocessed input
 raw/       user-approved immutable source material
 attachments/ default Obsidian attachments
 wiki/      compiled long-term Markdown knowledge
+wiki/tags.md flat kebab-case tag registry
 outputs/   final deliverables
 archives/   inactive old outputs only
 ```
@@ -889,6 +911,7 @@ The agent must update:
 
 ```text
 wiki/index.md
+wiki/tags.md
 wiki/log.jsonl
 ```
 
@@ -966,7 +989,7 @@ The setup wrapper must run full verification:
 2. Generate all fixed artifacts.
 3. Verify the directory structure.
 4. Verify forbidden paths do not exist.
-5. Verify AGENTS.md contains the required frontmatter and log schemas.
+5. Verify AGENTS.md contains the required frontmatter, tag, and log schemas.
 6. Verify README.md contains the operations guide, design idea, and directory explanation.
 7. Verify .scripts/postrun.sh is executable.
 8. Verify .scripts/check-index-log.sh is executable.
@@ -1024,6 +1047,7 @@ Before final output, confirm:
 AGENTS.md exists
 README.md exists
 wiki/index.md exists
+wiki/tags.md exists
 wiki/log.jsonl exists
 .scripts/postrun.sh exists and executable
 .scripts/check-index-log.sh exists and executable

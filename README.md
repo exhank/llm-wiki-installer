@@ -51,6 +51,7 @@ project sets up a stricter vault contract:
 - `raw/` keeps user-approved source evidence.
 - `wiki/` keeps compiled long-term Markdown knowledge.
 - `wiki/index.md` and `wiki/maps/` provide stable retrieval entry points.
+- `wiki/tags.md` keeps the flat kebab-case tag registry.
 - `wiki/log.jsonl`, Git diff, and generated scripts make changes auditable.
 - Upstream Skills are copied as third-party artifacts from pinned sources.
 
@@ -79,6 +80,7 @@ knowledge-vault/
 +-- attachments/         # Obsidian default attachment folder
 +-- wiki/                # durable compiled knowledge
 |   +-- index.md         # retrieval entry point
+|   +-- tags.md          # flat kebab-case tag registry
 |   +-- log.jsonl        # JSONL change log
 |   +-- maps/            # topic maps for navigation
 +-- outputs/             # generated reports and exports

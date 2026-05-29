@@ -99,7 +99,8 @@ retrieval accelerator = wiki/index.md + wiki/maps/ + rg + fzf
 ├─ wiki/                        # long-term Markdown Wiki compiled by LLMs
 │  ├─ maps/                     # topic entry points: MOC / Topic Map / Project Map / Learning Map
 │  ├─ index.md                  # global machine/human entry point; maintained automatically by agents
-│  └─ log.jsonl                    # append-only JSONL compilation and change ledger
+│  ├─ tags.md                   # canonical flat kebab-case tag registry
+│  └─ log.jsonl                 # append-only JSONL compilation and change ledger
 ├─ outputs/                     # current final deliverables, exports, externally facing artifacts
 ├─ archives/                     # old outputs that are not currently needed; not a knowledge archive
 ├─ AGENTS.md                    # repository-level canonical agent policy
@@ -144,6 +145,7 @@ examples/
 | `wiki/` | long-term knowledge layer compiled by LLMs | may write autonomously within clear scope | long-term maintenance; continuous evolution |
 | `wiki/maps/` | topic entry points; does not copy body text | writable | evolves with topics |
 | `wiki/index.md` | global entry point for machines and humans | maintained automatically by agents | must remain consistent with wiki discoverability |
+| `wiki/tags.md` | canonical flat kebab-case tag registry | maintained automatically by agents | evolves with vault taxonomy |
 | `wiki/log.jsonl` | append-only JSONL compilation and change ledger | append-only | audit record; does not replace Git log |
 | `outputs/` | current deliverables | writable within a clear task | regenerable; archivable |
 | `archives/` | cold storage for old outputs | writable within a clear archive task | does not carry knowledge structure |
@@ -276,7 +278,7 @@ The internal structure of `wiki/` should evolve naturally from content under LLM
 
 ---
 
-## 9. index, maps, log
+## 9. index, maps, tags, log
 
 ### 9.1 `wiki/index.md`
 
@@ -316,7 +318,13 @@ map   = topic entry point
 
 Maps may express project views, topic views, learning paths, research paths, and source navigation. They must not copy body text, become a second index, or replace a task management system.
 
-### 9.3 `wiki/log.jsonl`
+### 9.3 `wiki/tags.md`
+
+`tags.md` is the canonical tag registry. It keeps Obsidian tags flat,
+`kebab-case`, and reusable across the vault. Agents update it when introducing
+new tags and treat vault-wide tag redesigns as schema/policy migrations.
+
+### 9.4 `wiki/log.jsonl`
 
 `log.jsonl` is an append-only JSONL ledger. It does not replace Git log.
 Each line is one complete JSON object.
@@ -391,12 +399,17 @@ Recommended minimal frontmatter:
 ```yaml
 ---
 title: ""
-type: source | entity | concept | comparison | synthesis | question | map | decision | playbook | note
 tags: []
 created: 2026-05-28
 updated: 2026-05-28
 ---
 ```
+
+Tags must follow `wiki/tags.md`: use YAML lists, flat `kebab-case` values, no
+`#` prefixes, and no slash-delimited nested tags. LLMs must reuse existing tags
+where possible and update `wiki/tags.md` when introducing a new tag. Only
+redesign the tag standard for meaningful vault-wide taxonomy changes, and treat
+that redesign as a schema/policy migration.
 
 Put complex source information in body sections such as `Sources` / `Evidence`; do not pile up complex nested metadata.
 
@@ -483,9 +496,10 @@ Retrieval order:
 ```text
 1. wiki/index.md
 2. relevant wiki/maps/
-3. relevant wiki pages
-4. rg / fzf
-5. raw/ verification when needed
+3. wiki/tags.md when creating or changing tags
+4. relevant wiki pages
+5. rg / fzf
+6. raw/ verification when needed
 ```
 
 Tool positioning:
@@ -494,6 +508,7 @@ Tool positioning:
 | --- | --- | --- |
 | `wiki/index.md` | global entry point | pretty homepage |
 | `wiki/maps/` | topic entry points | top-level classification directories |
+| `wiki/tags.md` | flat kebab-case tag registry | nested taxonomy or folder replacement |
 | `rg` | fast full-text search | semantic understanding |
 | `fzf` | interactive selection | source of truth |
 
@@ -539,6 +554,7 @@ LLMs compile autonomously within a clear scope and update these files when neede
 ```text
 wiki/index.md
 wiki/maps/*
+wiki/tags.md
 wiki/log.jsonl
 ```
 

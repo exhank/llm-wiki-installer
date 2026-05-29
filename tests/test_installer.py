@@ -463,6 +463,7 @@ def test_write_generated_files_preserves_existing_files_without_force(
 
     assert readme.read_text(encoding="utf-8") == "custom readme\n"
     assert (tmp_path / "AGENTS.md").is_file()
+    assert (tmp_path / "wiki/tags.md").is_file()
     assert not (tmp_path / ".agents/skill-manifest.md").exists()
     assert not (tmp_path / ".agents/skill-manifest.json").exists()
     assert (tmp_path / ".codex/hooks.json").is_file()
@@ -886,6 +887,27 @@ def test_generated_review_commands_disable_git_pager(
     assert "git --no-pager diff" in readme
     assert "git --no-pager diff --stat" in agents
     assert "git --no-pager diff" in agents
+
+
+def test_generated_tag_policy_removes_frontmatter_type(
+    template_context: dict[str, str],
+) -> None:
+    agents = render_template("AGENTS.md", template_context)
+    tags = render_template("wiki-tags.md", template_context)
+
+    assert "type: source | entity" not in agents
+    assert "type: map" not in agents
+    assert "tags: []" in agents
+    assert "wiki/tags.md" in agents
+    assert "kebab-case" in agents
+    assert "nested slash tags" in agents
+    assert "add it\nto `wiki/tags.md`" in agents
+
+    assert "type: source | entity" not in tags
+    assert "Use flat tags only; do not use nested tags with `/`." in tags
+    assert "Use `kebab-case`" in tags
+    assert "type/source" in tags
+    assert "model-evaluation" in tags
 
 
 def test_run_install_with_no_selected_tools(

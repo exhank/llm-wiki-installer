@@ -73,6 +73,7 @@ def test_render_jsonl_log_template(template_context: dict[str, str]) -> None:
                 "AGENTS.md",
                 "README.md",
                 "wiki/index.md",
+                "wiki/tags.md",
                 "wiki/log.jsonl",
                 ".codex/config.toml",
                 ".scripts/postrun.sh",

@@ -37,6 +37,7 @@ inbox/      待处理输入
 raw/        用户确认过的原始证据
 attachments/ Obsidian 默认附件目录
 wiki/       长期维护的 Markdown 知识
+wiki/tags.md 扁平 kebab-case 标签注册表
 outputs/    当前交付物
 archives/    不活跃的旧交付物
 .agents/    上游 Skills

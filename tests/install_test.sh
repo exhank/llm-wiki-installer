@@ -414,6 +414,7 @@ test_full_install_generates_expected_layout() {
   assert_file "$target/AGENTS.md"
   assert_file "$target/README.md"
   assert_file "$target/wiki/index.md"
+  assert_file "$target/wiki/tags.md"
   assert_file "$target/wiki/log.jsonl"
   assert_file "$target/.codex/config.toml"
   assert_file "$target/.codex/hooks.json"
