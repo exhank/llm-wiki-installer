@@ -85,12 +85,14 @@ def prepare_target(target: Path) -> None:
 
 def template_context(
     today: str,
+    install_timestamp: str,
     upstream: Mapping[str, UpstreamInstall],
     selected_tools: Iterable[str],
 ) -> Mapping[str, str]:
     selected = set(selected_tools)
     context = {
         "TODAY": today,
+        "INSTALL_TIMESTAMP": install_timestamp,
         "RETRIEVAL_TOOLS": retrieval_tools_text(selected),
         "SEARCH_COMMANDS": search_commands_text(selected),
         "UPSTREAM_SKILL_POLICY": upstream_skill_policy_text(upstream),

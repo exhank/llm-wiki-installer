@@ -10,6 +10,7 @@ from llm_wiki_installer.upstream_skills import UpstreamInstall
 def test_template_context_maps_retrieval_tools_and_upstream_installs() -> None:
     context = template_context(
         "2026-05-28",
+        "2026-05-28T00:00:00Z",
         {
             "Ar9av": UpstreamInstall(
                 "https://example.test/ar9av", "a" * 40, "a" * 40, 1
@@ -31,6 +32,7 @@ def test_template_context_maps_retrieval_tools_and_upstream_installs() -> None:
 def test_template_context_maps_skipped_upstream_skills() -> None:
     context = template_context(
         "2026-05-28",
+        "2026-05-28T00:00:00Z",
         {
             "Ar9av": UpstreamInstall(
                 "https://example.test/ar9av", "a" * 40, "skipped", 0, "skipped"
@@ -53,7 +55,9 @@ def test_render_jsonl_log_template(template_context: dict[str, str]) -> None:
 
     assert entries == [
         {
-            "date": "2026-05-28",
+            "schema_version": 1,
+            "timestamp": "2026-05-28T00:00:00Z",
+            "actor": "llm-wiki-installer",
             "type": "schema-update",
             "scope": "llm-wiki initial repository artifacts",
             "reason": (

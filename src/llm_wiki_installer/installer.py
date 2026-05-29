@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +28,8 @@ def run_install(options: Options) -> None:
     source_root_path = source_root()
     target_path = Path(options.target_input or os.getcwd()).expanduser().resolve()
     today = date.today().isoformat()
+    install_timestamp = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    install_timestamp = install_timestamp.replace("+00:00", "Z")
 
     reject_generator_target(target_path, source_root_path)
     target = target_path
@@ -61,7 +63,7 @@ def run_install(options: Options) -> None:
     upstream = install_upstream_skills(target, selected_skills)
 
     log("Generate target files", quiet=options.json_output)
-    context = template_context(today, upstream, selected_tools)
+    context = template_context(today, install_timestamp, upstream, selected_tools)
     write_generated_files(
         target, context, force=options.force, quiet=options.json_output
     )

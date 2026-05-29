@@ -9,6 +9,7 @@ import pytest
 def template_context() -> dict[str, str]:
     context = {
         "TODAY": "2026-05-28",
+        "INSTALL_TIMESTAMP": "2026-05-28T00:00:00Z",
         "RETRIEVAL_TOOLS": "rg, or fzf",
         "SEARCH_COMMANDS": (
             'rg "keyword" wiki raw inbox outputs archives\n' "rg --files | fzf"

@@ -496,7 +496,7 @@ test_generated_check_index_log_requires_index_and_log() {
 
   (
     export STUB_GIT_DIFF_NAMES=$'wiki/new-page.md\nwiki/index.md\nwiki/log.jsonl'
-    export STUB_GIT_LOG_DIFF=$'+{"date":"2026-05-29","type":"ingest","scope":"raw/source -> wiki/new-page.md","reason":"","review":"self-reviewed","impact":{"index_updated":true,"references_checked":true},"files":["raw/source","wiki/new-page.md","wiki/index.md"]}'
+    export STUB_GIT_LOG_DIFF=$'+{"schema_version":1,"timestamp":"2026-05-29T00:00:00Z","actor":"agent","type":"ingest","scope":"raw/source -> wiki/new-page.md","reason":"Compiled durable knowledge from raw source.","review":"self-reviewed","impact":{"index_updated":true,"references_checked":true},"files":["raw/source","wiki/new-page.md","wiki/index.md"]}'
     cd "$target"
     run_with_stubs bash .scripts/check-index-log.sh
   ) >"$out" 2>&1

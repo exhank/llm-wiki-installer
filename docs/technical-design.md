@@ -320,6 +320,8 @@ Maps may express project views, topic views, learning paths, research paths, and
 
 `log.jsonl` is an append-only JSONL ledger. It does not replace Git log.
 Each line is one complete JSON object.
+Each event uses a UTC ISO-8601 `timestamp`, `schema_version`, and explicit
+`actor`; `reason` must be reviewable instead of blank filler.
 
 Only meaningful events are recorded:
 
@@ -346,25 +348,25 @@ Ordinary read-only queries do not write to the log.
 ### 10.1 Delete File
 
 ```json
-{"date":"YYYY-MM-DD","type":"delete","scope":"path/to/file.md","reason":"Why this file is safe to delete.","authorized_by":"user | explicit-task","review":"self-reviewed","impact":{"index_updated":"true | false | not-needed","references_checked":"true | false"},"files":["path/to/file.md"]}
+{"schema_version":1,"timestamp":"YYYY-MM-DDTHH:MM:SSZ","actor":"agent","type":"delete","scope":"path/to/file.md","reason":"Why this file is safe to delete.","authorized_by":"user | explicit-task","review":"self-reviewed","impact":{"index_updated":false,"references_checked":true},"files":["path/to/file.md"]}
 ```
 
 ### 10.2 Move / Rename File
 
 ```json
-{"date":"YYYY-MM-DD","type":"move","scope":"old/path.md -> new/path.md","reason":"Why this move is needed.","authorized_by":"user | explicit-task","review":"self-reviewed","impact":{"index_updated":"true | false | not-needed","references_checked":"true | false"},"files":["old/path.md","new/path.md"]}
+{"schema_version":1,"timestamp":"YYYY-MM-DDTHH:MM:SSZ","actor":"agent","type":"move","scope":"old/path.md -> new/path.md","reason":"Why this move is needed.","authorized_by":"user | explicit-task","review":"self-reviewed","impact":{"index_updated":true,"references_checked":true},"files":["old/path.md","new/path.md"]}
 ```
 
 ### 10.3 wiki Compilation
 
 ```json
-{"date":"YYYY-MM-DD","type":"ingest","scope":"raw/source.pdf -> wiki/page.md","reason":"Compiled durable knowledge from raw source.","review":"self-reviewed","impact":{"index_updated":true,"references_checked":true},"files":["raw/source.pdf","wiki/page.md","wiki/index.md"]}
+{"schema_version":1,"timestamp":"YYYY-MM-DDTHH:MM:SSZ","actor":"agent","type":"ingest","scope":"raw/source.pdf -> wiki/page.md","reason":"Compiled durable knowledge from raw source.","review":"self-reviewed","impact":{"index_updated":true,"references_checked":true},"files":["raw/source.pdf","wiki/page.md","wiki/index.md"]}
 ```
 
 ### 10.4 outputs Archive
 
 ```json
-{"date":"YYYY-MM-DD","type":"archive-output","scope":"outputs/report-v1.md -> archives/report-v1.md","reason":"Old deliverable no longer active.","review":"self-reviewed","impact":{"index_updated":"not-needed","references_checked":true},"files":["outputs/report-v1.md","archives/report-v1.md"]}
+{"schema_version":1,"timestamp":"YYYY-MM-DDTHH:MM:SSZ","actor":"agent","type":"archive-output","scope":"outputs/report-v1.md -> archives/report-v1.md","reason":"Old deliverable no longer active.","review":"self-reviewed","impact":{"index_updated":"not-needed","references_checked":true},"files":["outputs/report-v1.md","archives/report-v1.md"]}
 ```
 
 ---

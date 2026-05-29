@@ -7,6 +7,10 @@ when the package version in `src/llm_wiki_installer/__init__.py` changes.
 
 ## Unreleased
 
+- Generate `wiki/log.jsonl` entries with UTC `timestamp`, `schema_version`, and
+  `actor` fields instead of a date-only field, and tighten generated log schema
+  examples to avoid blank reasons and stringified booleans.
+
 ## 0.1.6 - 2026-05-29
 
 - Create `attachments/` during installation to match the generated Obsidian
