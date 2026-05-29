@@ -5,7 +5,7 @@ All notable changes to this project will be documented here.
 This project follows a simple human-readable changelog. Versions are published
 when the package version in `src/llm_wiki_installer/__init__.py` changes.
 
-## Unreleased
+## 0.1.7 - 2026-05-29
 
 - Create an empty generated `schema/` directory and document the schema layer in
   the generated `AGENTS.md` template.
