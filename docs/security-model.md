@@ -19,6 +19,8 @@ for users and maintainers to audit.
 
 The installer may access the network only for documented bootstrap operations:
 
+- PyPI-based installs fetch the published `llm-wiki-installer` distribution,
+  typically through `uvx --python 3.13 llm-wiki-installer`;
 - streamed installs clone `llm-wiki-installer` from the configured repository
   and release ref, defaulting to `v0.1.0`;
 - selected upstream Skill sources are cloned at pinned commit SHAs;
@@ -76,5 +78,7 @@ commits, resolved commits, and install results in both Markdown and JSON.
 - Publish PyPI releases through GitHub Actions Trusted Publishing from the
   protected `pypi` environment; do not store long-lived PyPI API tokens in the
   repository.
+- Verify each release through the GitHub Release page and the PyPI project page
+  before announcing the version in user-facing docs.
 - Do not commit secrets, private paths, generated vault output, or build
   artifacts.

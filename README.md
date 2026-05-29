@@ -3,7 +3,7 @@
 [![CI](https://github.com/exhank/llm-wiki-installer/actions/workflows/ci.yml/badge.svg)](https://github.com/exhank/llm-wiki-installer/actions/workflows/ci.yml)
 [![Release](https://github.com/exhank/llm-wiki-installer/actions/workflows/release.yml/badge.svg)](https://github.com/exhank/llm-wiki-installer/actions/workflows/release.yml)
 [![Python 3.13+](https://img.shields.io/badge/python-3.13%2B-blue.svg)](pyproject.toml)
-[![PyPI Trusted Publishing Ready](https://img.shields.io/badge/PyPI-Trusted%20Publishing%20Ready-blue.svg)](CONTRIBUTING.md#release-publishing)
+[![PyPI](https://img.shields.io/pypi/v/llm-wiki-installer.svg)](https://pypi.org/project/llm-wiki-installer/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 `llm-wiki-installer` generates a Git-auditable, agent-friendly Obsidian
@@ -20,12 +20,12 @@ generated vault lives in a separate target repository.
 
 ## 30-Second Start
 
-Create and inspect a vault with a release-pinned installer:
+Create and inspect a vault with the published PyPI package:
 
 ```bash
 mkdir knowledge-vault
 cd knowledge-vault
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/v0.1.0/install.sh)" -- --no-interactive
+uvx --python 3.13 llm-wiki-installer --no-interactive .
 bash .scripts/postrun.sh
 git status --short
 ```
@@ -33,13 +33,15 @@ git status --short
 Preview the same install without writing files or running network steps:
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/v0.1.0/install.sh)" -- --dry-run --json
+uvx --python 3.13 llm-wiki-installer --dry-run --json .
 ```
 
-For automation, prefer the PyPI entry point:
+The package is published on PyPI as
+[`llm-wiki-installer`](https://pypi.org/project/llm-wiki-installer/).
+For pinned automation, include the package version:
 
 ```bash
-uvx --python 3.13 llm-wiki-installer --dry-run --json /path/to/knowledge-vault
+uvx --python 3.13 llm-wiki-installer==0.1.0 --dry-run --json /path/to/knowledge-vault
 ```
 
 ## Why This Exists
@@ -101,7 +103,20 @@ agents read AGENTS.md -> retrieve with qmd/rg/fzf -> verify against raw/
 
 ## Generate A Vault
 
-Install into the current directory with a release-pinned one-line command:
+Install with the published PyPI package:
+
+```bash
+uvx --python 3.13 llm-wiki-installer /path/to/knowledge-vault
+```
+
+Pin the package version for repeatable automation:
+
+```bash
+uvx --python 3.13 llm-wiki-installer==0.1.0 /path/to/knowledge-vault
+```
+
+Install into the current directory with a release-pinned one-line shell
+bootstrap:
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/v0.1.0/install.sh)"
@@ -118,16 +133,10 @@ The streamed launcher also clones release ref `v0.1.0` by default. Set
 release tag in the curl URL and the launcher ref keeps the bootstrap path
 anchored to the same published source.
 
-Alternatively, run the published Python package with `uvx`:
-
-```bash
-uvx --python 3.13 llm-wiki-installer /path/to/knowledge-vault
-```
-
 The `uvx` entry point uses the PyPI package and runs the same installer CLI as
-`llm-wiki-install`. It is a good fit for automation and developer machines that
-already use `uv`; the streamed one-line command remains the lowest-friction
-bootstrap path.
+`llm-wiki-install`. It is the preferred path for automation because JSON output
+comes directly from the Python CLI. The streamed one-line command remains useful
+on machines that do not already use `uv`.
 
 Install from a local checkout into the current directory:
 
@@ -228,8 +237,8 @@ collection at the target root.
 - Node.js 22+ and npm when qmd is selected
 - `rg` when selected
 - `fzf` when selected
-- Network access to GitHub and npm when dependencies or upstream Skills are
-  missing
+- Network access to PyPI for `uvx`, GitHub for streamed installs and upstream
+  Skills, and npm when qmd is selected and missing
 
 If `qmd` is selected and missing, the installer runs:
 
@@ -272,11 +281,12 @@ Installer failures are intended to be actionable. Common fixes:
 
 The installer does not include telemetry. It writes only under the target vault
 root after rejecting the generator repository itself and child paths. Network
-access is limited to documented bootstrap operations: cloning this installer
-for streamed installs, cloning selected pinned upstream Skill sources, and
-installing `@tobilu/qmd` with npm when qmd is selected and missing. Use
-`--dry-run` to inspect the plan first, and `--offline` to disable network
-bootstrap operations.
+access is limited to documented bootstrap operations: fetching the published
+package from PyPI when using `uvx`, cloning this installer for streamed
+installs, cloning selected pinned upstream Skill sources, and installing
+`@tobilu/qmd` with npm when qmd is selected and missing. Use `--dry-run` to
+inspect the plan first, and `--offline` to disable installer-managed network
+bootstrap operations after the package or launcher has already started.
 
 ## Develop
 

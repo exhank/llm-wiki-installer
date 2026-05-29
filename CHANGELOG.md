@@ -5,6 +5,12 @@ All notable changes to this project will be documented here.
 This project follows a simple human-readable changelog. Versions are published
 when the package version in `src/llm_wiki_installer/__init__.py` changes.
 
+## Unreleased
+
+- Update user-facing documentation now that `llm-wiki-installer` is published
+  on PyPI, making `uvx` the primary automation path.
+- Clarify that the PyPI Trusted Publisher is configured for future releases.
+
 ## 0.1.0 - 2026-05-29
 
 - Add open-source contributor, security, conduct, issue, pull request, and CI

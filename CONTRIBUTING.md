@@ -57,20 +57,30 @@ Release tags use `.github/workflows/release.yml` to build the source
 distribution and wheel, smoke test both console entry points, upload GitHub
 Release artifacts, and publish to PyPI with Trusted Publishing.
 
+The project is published on PyPI as
+[`llm-wiki-installer`](https://pypi.org/project/llm-wiki-installer/). Users can
+run a release directly with:
+
+```bash
+uvx --python 3.13 llm-wiki-installer /path/to/knowledge-vault
+uvx --python 3.13 llm-wiki-installer==0.1.0 --dry-run --json /path/to/knowledge-vault
+```
+
 The package version is sourced from `src/llm_wiki_installer/__init__.py`; do not
 add a second literal version in `pyproject.toml`.
 
 GitHub release notes are generated from merged pull requests using
 `.github/release.yml`. Keep PR labels meaningful so release notes stay useful.
 
-Before publishing, configure the PyPI project `llm-wiki-installer` with a
-GitHub Actions trusted publisher:
+The PyPI project `llm-wiki-installer` is configured with this GitHub Actions
+trusted publisher:
 
 - owner: `exhank`
 - repository: `llm-wiki-installer`
 - workflow: `release.yml`
 - environment: `pypi`
 
-The release workflow intentionally publishes without a PyPI API token. Keep the
-build job separate from the PyPI publish job, and keep `id-token: write` scoped
-to the jobs that need OIDC.
+The release workflow intentionally publishes without a PyPI API token. For
+future releases, keep the build job separate from the PyPI publish job, keep
+`id-token: write` scoped to the jobs that need OIDC, and verify both the GitHub
+Release and PyPI project page after a tag publish completes.

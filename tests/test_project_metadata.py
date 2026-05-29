@@ -19,11 +19,11 @@ def test_release_notes_config_exists() -> None:
     assert (REPO_ROOT / ".github" / "release.yml").is_file()
 
 
-def test_readme_static_badges_do_not_depend_on_unpublished_pypi_project() -> None:
+def test_readme_pypi_badge_targets_published_project() -> None:
     readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
 
-    assert "img.shields.io/pypi/" not in readme
-    assert "pypi.org/project/llm-wiki-installer" not in readme
+    assert "img.shields.io/pypi/v/llm-wiki-installer.svg" in readme
+    assert "https://pypi.org/project/llm-wiki-installer/" in readme
 
 
 def test_github_actions_are_pinned_to_full_commit_shas() -> None:

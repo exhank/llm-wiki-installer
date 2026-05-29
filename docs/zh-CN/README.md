@@ -9,10 +9,12 @@ Markdown 知识库仓库。生成后的 vault 使用 Git 审核变更，用 `raw
 
 ## 30 秒开始
 
+推荐使用已经发布到 PyPI 的入口：
+
 ```bash
 mkdir knowledge-vault
 cd knowledge-vault
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/v0.1.0/install.sh)" -- --no-interactive
+uvx --python 3.13 llm-wiki-installer --no-interactive .
 bash .scripts/postrun.sh
 git status --short
 ```
@@ -20,7 +22,19 @@ git status --short
 先预览计划，不写文件、不联网：
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/v0.1.0/install.sh)" -- --dry-run --json
+uvx --python 3.13 llm-wiki-installer --dry-run --json .
+```
+
+需要固定版本时：
+
+```bash
+uvx --python 3.13 llm-wiki-installer==0.1.0 --dry-run --json /path/to/knowledge-vault
+```
+
+如果目标机器不用 `uv`，也可以使用 release-pinned shell bootstrap：
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/v0.1.0/install.sh)" -- --no-interactive
 ```
 
 ## 生成的目录
