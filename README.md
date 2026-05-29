@@ -350,8 +350,22 @@ artifacts:
 - `Ar9av/obsidian-wiki`
 - `kepano/obsidian-skills`
 
-Thanks to those authors and maintainers for publishing work that this generator
-can integrate with and preserve as upstream material.
+Thanks to the authors and maintainers of the tools and ecosystems this project
+builds on:
+
+- [Obsidian](https://obsidian.md/) for the local-first Markdown knowledge base
+  model this installer targets.
+- [`@tobilu/qmd`](https://www.npmjs.com/package/@tobilu/qmd) for Markdown
+  collection indexing and retrieval.
+- [ripgrep](https://github.com/BurntSushi/ripgrep) and
+  [fzf](https://github.com/junegunn/fzf) for fast local search and selection.
+- [Git](https://git-scm.com/), [Python](https://www.python.org/), and
+  [Node.js](https://nodejs.org/) for the portable installer and verification
+  toolchain.
+
+These acknowledgements do not imply endorsement by those projects. They are
+included to make the dependencies and inspiration behind `llm-wiki-installer`
+clear.
 
 ## License
 
