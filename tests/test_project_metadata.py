@@ -28,8 +28,9 @@ def test_readme_pypi_badge_targets_published_project() -> None:
 
     assert version_match
     assert (
-        "img.shields.io/pypi/v/llm-wiki-installer"
-        f"?label=PyPI&cacheSeconds=300&release={version_match.group(1)}"
+        "img.shields.io/badge/dynamic/json"
+        "?url=https%3A%2F%2Fpypi.org%2Fpypi%2Fllm-wiki-installer%2F"
+        f"{version_match.group(1)}%2Fjson&query=%24.info.version&label=PyPI&prefix=v"
     ) in readme
     assert "https://pypi.org/project/llm-wiki-installer/" in readme
 

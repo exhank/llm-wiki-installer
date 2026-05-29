@@ -5,6 +5,12 @@ All notable changes to this project will be documented here.
 This project follows a simple human-readable changelog. Versions are published
 when the package version in `src/llm_wiki_installer/__init__.py` changes.
 
+## 0.1.5 - 2026-05-29
+
+- Switch the README PyPI badge to a release-specific shields dynamic JSON
+  badge so it renders the just-published package version instead of waiting on
+  shields' PyPI endpoint cache.
+
 ## 0.1.4 - 2026-05-29
 
 - Disable Git's pager for installer diff-stat review output and generated
@@ -13,8 +19,6 @@ when the package version in `src/llm_wiki_installer/__init__.py` changes.
 - Add a shell integration test for the README one-line curl install command so
   release-tag resolution, raw install script fetching, bootstrap cloning, qmd
   initialization, and generated post-run checks are covered end to end.
-- Add a versioned cache-buster to the README PyPI badge URL so GitHub's image
-  cache refreshes when the package version changes.
 
 ## 0.1.3 - 2026-05-29
 

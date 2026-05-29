@@ -3,7 +3,7 @@
 [![CI](https://github.com/exhank/llm-wiki-installer/actions/workflows/ci.yml/badge.svg)](https://github.com/exhank/llm-wiki-installer/actions/workflows/ci.yml)
 [![Release](https://github.com/exhank/llm-wiki-installer/actions/workflows/release.yml/badge.svg)](https://github.com/exhank/llm-wiki-installer/actions/workflows/release.yml)
 [![Python 3.13+](https://img.shields.io/badge/python-3.13%2B-blue.svg)](pyproject.toml)
-[![PyPI](https://img.shields.io/pypi/v/llm-wiki-installer?label=PyPI&cacheSeconds=300&release=0.1.4)](https://pypi.org/project/llm-wiki-installer/)
+[![PyPI](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fpypi.org%2Fpypi%2Fllm-wiki-installer%2F0.1.5%2Fjson&query=%24.info.version&label=PyPI&prefix=v)](https://pypi.org/project/llm-wiki-installer/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 `llm-wiki-installer` generates a Git-auditable, agent-friendly Obsidian
