@@ -20,12 +20,16 @@ generated vault lives in a separate target repository.
 
 ## 30-Second Start
 
-Create and inspect a vault with the published PyPI package:
+Create a vault with one command:
 
 ```bash
-mkdir knowledge-vault
+uvx --python 3.13 llm-wiki-installer --no-interactive ./knowledge-vault
+```
+
+Inspect the generated vault:
+
+```bash
 cd knowledge-vault
-uvx --python 3.13 llm-wiki-installer --no-interactive .
 bash .scripts/postrun.sh
 git status --short
 ```
@@ -42,6 +46,13 @@ For pinned automation, include the package version you want to reproduce:
 
 ```bash
 uvx --python 3.13 llm-wiki-installer==<version> --dry-run --json /path/to/knowledge-vault
+```
+
+If you do not use `uv`, the release-pinned shell bootstrap can resolve the
+latest GitHub release tag and install in one line:
+
+```bash
+/bin/bash -c "$(curl -fsSL "https://raw.githubusercontent.com/exhank/llm-wiki-installer/$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/exhank/llm-wiki-installer/releases/latest | sed 's#.*/tag/##')/install.sh")" -- --no-interactive ./knowledge-vault
 ```
 
 ## Why This Exists
@@ -116,17 +127,17 @@ uvx --python 3.13 llm-wiki-installer==<version> /path/to/knowledge-vault
 ```
 
 Install into the current directory with a release-pinned one-line shell
-bootstrap by substituting the latest release tag from
+bootstrap that resolves the latest release tag from
 [GitHub Releases](https://github.com/exhank/llm-wiki-installer/releases/latest):
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/<latest-tag>/install.sh)"
+/bin/bash -c "$(curl -fsSL "https://raw.githubusercontent.com/exhank/llm-wiki-installer/$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/exhank/llm-wiki-installer/releases/latest | sed 's#.*/tag/##')/install.sh")"
 ```
 
 Pass installer options through the same pattern:
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/<latest-tag>/install.sh)" -- --force
+/bin/bash -c "$(curl -fsSL "https://raw.githubusercontent.com/exhank/llm-wiki-installer/$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/exhank/llm-wiki-installer/releases/latest | sed 's#.*/tag/##')/install.sh")" -- --force
 ```
 
 The streamed launcher also clones the release ref embedded in that launcher.

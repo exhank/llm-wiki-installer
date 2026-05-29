@@ -32,7 +32,8 @@ def test_readme_uses_latest_version_placeholders_for_user_commands() -> None:
     assert "llm-wiki-installer==0.1.0" not in readme
     assert "raw.githubusercontent.com/exhank/llm-wiki-installer/v0.1.0" not in readme
     assert "llm-wiki-installer==<version>" in readme
-    assert "llm-wiki-installer/<latest-tag>/install.sh" in readme
+    assert "https://github.com/exhank/llm-wiki-installer/releases/latest" in readme
+    assert "url_effective" in readme
 
 
 def test_github_actions_are_pinned_to_full_commit_shas() -> None:

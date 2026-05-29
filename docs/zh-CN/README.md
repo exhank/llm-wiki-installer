@@ -9,12 +9,16 @@ Markdown 知识库仓库。生成后的 vault 使用 Git 审核变更，用 `raw
 
 ## 30 秒开始
 
-推荐使用已经发布到 PyPI 的入口：
+推荐使用已经发布到 PyPI 的入口，一行生成 vault：
 
 ```bash
-mkdir knowledge-vault
+uvx --python 3.13 llm-wiki-installer --no-interactive ./knowledge-vault
+```
+
+然后检查生成结果：
+
+```bash
 cd knowledge-vault
-uvx --python 3.13 llm-wiki-installer --no-interactive .
 bash .scripts/postrun.sh
 git status --short
 ```
@@ -31,13 +35,12 @@ uvx --python 3.13 llm-wiki-installer --dry-run --json .
 uvx --python 3.13 llm-wiki-installer==<version> --dry-run --json /path/to/knowledge-vault
 ```
 
-如果目标机器不用 `uv`，也可以使用 release-pinned shell bootstrap。把
-`<latest-tag>` 替换成
-[GitHub Releases](https://github.com/exhank/llm-wiki-installer/releases/latest)
-里的最新 release tag：
+如果目标机器不用 `uv`，也可以使用 release-pinned shell bootstrap。下面这
+一行会从 [GitHub Releases](https://github.com/exhank/llm-wiki-installer/releases/latest)
+解析最新 release tag：
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/<latest-tag>/install.sh)" -- --no-interactive
+/bin/bash -c "$(curl -fsSL "https://raw.githubusercontent.com/exhank/llm-wiki-installer/$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/exhank/llm-wiki-installer/releases/latest | sed 's#.*/tag/##')/install.sh")" -- --no-interactive ./knowledge-vault
 ```
 
 ## 生成的目录
