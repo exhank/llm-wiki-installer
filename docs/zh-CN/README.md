@@ -21,13 +21,13 @@ curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/main/inst
 如果你使用 `uv`，也可以运行已经发布到 PyPI 的入口：
 
 ```bash
-uvx --python 3.13 llm-wiki-installer
+uvx llm-wiki-installer
 ```
 
 需要固定版本时：
 
 ```bash
-uvx --python 3.13 llm-wiki-installer==<version> --no-interactive /path/to/knowledge-vault
+uvx llm-wiki-installer==<version> --no-interactive /path/to/knowledge-vault
 ```
 
 ## 生成的目录
@@ -38,8 +38,8 @@ raw/        用户确认过的原始证据
 attachments/ Obsidian 默认附件目录
 wiki/       长期维护的 Markdown 知识
 outputs/    当前交付物
-archive/    不活跃的旧交付物
-.agents/    上游 Skills 与 manifest
+archives/    不活跃的旧交付物
+.agents/    上游 Skills
 .codex/     Codex 适配配置
 .scripts/   校验脚本
 ```

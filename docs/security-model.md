@@ -47,7 +47,7 @@ checks protect generated paths and upstream Skill copy targets from escaping the
 target vault.
 
 Existing generated files are preserved unless `--force` is passed. User-owned
-knowledge files under `raw/`, `wiki/`, `outputs/`, `inbox/`, and `archive/` are
+knowledge files under `raw/`, `wiki/`, `outputs/`, `inbox/`, and `archives/` are
 not overwritten by normal template generation.
 
 ## Command Execution
@@ -66,16 +66,13 @@ Security-sensitive commands include:
 The generated `AGENTS.md` is the runtime policy authority. Upstream Skills are
 copied under `.agents/skills/`, flattened by skill name, and must not override
 `AGENTS.md`.
-Generated manifests record selected tools, skipped tools, upstream pinned
-commits, resolved commits, and install results in both Markdown and JSON.
 Stable Obsidian settings, pinned community plugin assets, and the bundled theme
 are generated under `.obsidian/`; volatile workspace state is excluded.
 
 ## Maintainer Checklist
 
 - Review every change that adds a command execution path.
-- Update tests for every generated path, manifest field, template, or safety
-  policy change.
+- Update tests for every generated path, template, or safety policy change.
 - Treat upstream commit pin changes as supply-chain updates.
 - Keep streamed install defaults on release tags rather than mutable branches.
 - Keep GitHub Actions release dependencies pinned to reviewed commit SHAs.

@@ -22,9 +22,9 @@ raw/      = user-approved source evidence layer; read-only for agents by default
 attachments/ = default Obsidian attachment folder for embedded media
 wiki/     = long-term Markdown Wiki compiled by LLMs
 outputs/  = current deliverables, exports, and externally facing artifacts
-archive/  = old outputs archive; not a knowledge archive
+archives/  = old outputs archive; not a knowledge archive
 AGENTS.md = repository-level canonical agent policy
-.agents/  = project-local selected skills and skill manifest
+.agents/  = project-local selected skills
 .codex/   = Codex adapter / hooks; does not carry long-term rules
 .scripts/ = fixed project scripts
 .obsidian/ = stable Obsidian settings, pinned plugin assets, and theme files
@@ -55,7 +55,7 @@ The design must satisfy:
 3. **Traceable evidence**: Original sources live in `raw/`, long-term conclusions live in `wiki/`, and important judgments can be traced back.
 4. **Reviewability**: All writes are reviewed through Git diff, logs, postrun checks, and index/log consistency checks.
 5. **Compounding value**: High-value answers are written back to the wiki instead of disappearing into chat history.
-6. **Repeatable artifacts**: Setup, rules, scripts, manifest, selected or skipped upstream versions, and diff output must be reviewable.
+6. **Repeatable artifacts**: Setup, rules, scripts, pinned upstream sources, and diff output must be reviewable.
 
 ---
 
@@ -70,7 +70,7 @@ LLM Wiki analogy:
 | compiled output | long-term Markdown pages, maps, index, and log in `wiki/` |
 | runtime | wiki-first query workflow |
 | tests | postrun, index/log check, dead-link check, Git diff review |
-| schema | `AGENTS.md`, Skill manifest, hooks, scripts |
+| schema | `AGENTS.md`, hooks, scripts |
 | rollback | Git branch, diff, restore, revert |
 
 Difference from traditional RAG:
@@ -101,14 +101,12 @@ retrieval accelerator = wiki/index.md + wiki/maps/ + rg + fzf
 │  ├─ index.md                  # global machine/human entry point; maintained automatically by agents
 │  └─ log.jsonl                    # append-only JSONL compilation and change ledger
 ├─ outputs/                     # current final deliverables, exports, externally facing artifacts
-├─ archive/                     # old outputs that are not currently needed; not a knowledge archive
+├─ archives/                     # old outputs that are not currently needed; not a knowledge archive
 ├─ AGENTS.md                    # repository-level canonical agent policy
 ├─ README.md                    # human entry point: operations guide, design idea, directory explanation
 ├─ .agents/
 │  ├─ skills/
 │  │  └─ <skill-name>/          # selected upstream skills, flattened by skill name
-│  ├─ skill-manifest.md         # human-readable version pins, install state, skipped records
-│  └─ skill-manifest.json       # machine-readable version pins, install state, skipped records
 ├─ .codex/
 │  ├─ config.toml               # Codex adapter config
 │  └─ hooks.json                # Codex project hook config
@@ -148,10 +146,8 @@ examples/
 | `wiki/index.md` | global entry point for machines and humans | maintained automatically by agents | must remain consistent with wiki discoverability |
 | `wiki/log.jsonl` | append-only JSONL compilation and change ledger | append-only | audit record; does not replace Git log |
 | `outputs/` | current deliverables | writable within a clear task | regenerable; archivable |
-| `archive/` | cold storage for old outputs | writable within a clear archive task | does not carry knowledge structure |
-| `.agents/skills/` | selected upstream Skills, flattened by skill name | maintained by setup | recorded by manifest |
-| `.agents/skill-manifest.md` | selected upstream versions, skipped records, and generated artifacts lockfile | maintained by setup | updated on every setup/update |
-| `.agents/skill-manifest.json` | machine-readable mirror of installer, tool, upstream pin, and generated artifact state | maintained by setup | updated on every setup/update |
+| `archives/` | cold storage for old outputs | writable within a clear archive task | does not carry knowledge structure |
+| `.agents/skills/` | selected upstream Skills, flattened by skill name | maintained by setup | generated during setup/update |
 | `.codex/config.toml` | Codex adapter config | maintained by adapter | does not carry long-term rules |
 | `.codex/hooks.json` | Codex project hook config | maintained by adapter | does not carry long-term rules |
 | `.scripts/` | general project scripts | maintained by setup | reviewable and testable |
@@ -368,7 +364,7 @@ Ordinary read-only queries do not write to the log.
 ### 10.4 outputs Archive
 
 ```json
-{"date":"YYYY-MM-DD","type":"archive-output","scope":"outputs/report-v1.md -> archive/report-v1.md","reason":"Old deliverable no longer active.","review":"self-reviewed","impact":{"index_updated":"not-needed","references_checked":true},"files":["outputs/report-v1.md","archive/report-v1.md"]}
+{"date":"YYYY-MM-DD","type":"archive-output","scope":"outputs/report-v1.md -> archives/report-v1.md","reason":"Old deliverable no longer active.","review":"self-reviewed","impact":{"index_updated":"not-needed","references_checked":true},"files":["outputs/report-v1.md","archives/report-v1.md"]}
 ```
 
 ---
@@ -446,8 +442,8 @@ Agents may write wiki/ within a clear scope.
 Agents may automatically maintain wiki/index.md.
 Agents may append wiki/log.jsonl.
 Agents may write outputs/ within a clear task.
-Agents may write archive/ within a clear archive task.
-Agents may maintain .agents/skill-manifest.md, .scripts/, .codex/hooks.json, and .codex/config.toml.
+Agents may write archives/ within a clear archive task.
+Agents may maintain .scripts/, .codex/hooks.json, and .codex/config.toml.
 Agents may maintain generated .obsidian settings and pinned asset templates when the generator contract changes.
 Agents may not write raw/ by default.
 Agents may not create .codex/rules/.
@@ -475,12 +471,10 @@ fzf     = interactive fuzzy selection
 
 Interactive setup presents rg and fzf in a default-all selector. Up/Down moves,
 Space toggles, and Enter accepts. Non-interactive setup uses the all-selected
-default. Skipped tools are recorded in `.agents/skill-manifest.md`.
+default.
 
 Upstream Skill sources are installed from release-pinned commit SHAs, not from
-mutable branch tips. The generated Markdown and JSON manifests record the pinned
-commit, resolved commit, install result, and installed Skill count for each
-source.
+mutable branch tips.
 
 Retrieval order:
 
@@ -582,7 +576,7 @@ wiki/pages/maps/synthesis -> outputs/*.md / pdf / ppt / html / zip
 Only archive old outputs:
 
 ```text
-outputs/old-report.md -> archive/old-report.md
+outputs/old-report.md -> archives/old-report.md
 ```
 
 Archiving must be written to `wiki/log.jsonl`.
@@ -611,8 +605,6 @@ fixed directories
 fixed filenames
 fixed templates
 fixed diff output
-fixed manifest
-latest selected upstream Skill versions and skipped sources recorded in the manifest
 ```
 
 Installer implementation must keep control flow and generated content separate:
@@ -622,7 +614,7 @@ install.sh = compatibility launcher
 src/llm_wiki_installer/installer.py = top-level install orchestration
 src/llm_wiki_installer/install_options.py = CLI option parsing
 src/llm_wiki_installer/terminal_ui.py = interactive selectors
-src/llm_wiki_installer/toolchain.py = dependency tool checks and versions
+src/llm_wiki_installer/toolchain.py = dependency tool checks
 src/llm_wiki_installer/upstream_skills.py = upstream Skill installation
 src/llm_wiki_installer/target_layout.py = target directory and file generation
 src/llm_wiki_installer/template_renderer.py = packaged template rendering
@@ -644,7 +636,6 @@ verify postrun.sh
 verify check-index-log.sh failure strategy
 verify rg/fzf existence
 verify upstream skill existence detection
-verify skill-manifest.md generation
 delete test files, test data, and temporary directory
 ```
 
@@ -674,7 +665,7 @@ Main risks:
 | Skill fork | hand-written replacement for upstream Skill | reuse open-source Skills as-is; generate only the setup wrapper, AGENTS policy, and scripts |
 | adapter becomes truth source | different agents have inconsistent rules | AGENTS.md is canonical |
 | plugin lock-in | relying on Obsidian plugins as the knowledge format | generate pinned assets; keep knowledge GFM-compatible |
-| unreviewable setup drift | different files generated without version evidence | manifest, fixed templates, resolved upstream commits, fixed diff |
+| unreviewable setup drift | different files generated without review evidence | fixed templates, pinned upstream commits, fixed diff |
 
 Antipatterns:
 

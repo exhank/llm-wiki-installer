@@ -307,7 +307,6 @@ test_readme_one_line_curl_install_command() {
   canonical_target="$(cd "$target" && pwd -P)"
 
   assert_file "$target/AGENTS.md"
-  assert_file "$target/.agents/skill-manifest.json"
   assert_file "$target/.agents/skills/ar9av-skill/SKILL.md"
   assert_file "$target/.agents/skills/kepano-skill/SKILL.md"
   assert_contains "$curl_log" "raw.githubusercontent.com/exhank/llm-wiki-installer/main/install.sh"
@@ -355,8 +354,8 @@ test_default_target_is_current_directory() {
   canonical_target="$(cd "$target" && pwd -P)"
 
   assert_file "$target/AGENTS.md"
-  assert_file "$target/.agents/skill-manifest.md"
-  assert_file "$target/.agents/skill-manifest.json"
+  [ ! -e "$target/.agents/skill-manifest.md" ] || fail_assertion "unexpected skill-manifest.md"
+  [ ! -e "$target/.agents/skill-manifest.json" ] || fail_assertion "unexpected skill-manifest.json"
   assert_contains "$out" "Generated llm-wiki knowledge vault at: $canonical_target"
 }
 
@@ -369,8 +368,8 @@ test_no_interactive_uses_default_selection() {
 
   assert_file "$target/.agents/skills/ar9av-skill/SKILL.md"
   assert_file "$target/.agents/skills/kepano-skill/SKILL.md"
-  assert_contains "$target/.agents/skill-manifest.md" "| rg | ripgrep 14.1.0 | installed |"
-  assert_contains "$target/.agents/skill-manifest.md" "| fzf | 0.56.0 (test) | installed |"
+  [ ! -e "$target/.agents/skill-manifest.md" ] || fail_assertion "unexpected skill-manifest.md"
+  [ ! -e "$target/.agents/skill-manifest.json" ] || fail_assertion "unexpected skill-manifest.json"
 }
 
 test_dry_run_writes_nothing() {
@@ -411,13 +410,11 @@ test_full_install_generates_expected_layout() {
   assert_dir "$target/attachments"
   assert_dir "$target/wiki/maps"
   assert_dir "$target/outputs"
-  assert_dir "$target/archive"
+  assert_dir "$target/archives"
   assert_file "$target/AGENTS.md"
   assert_file "$target/README.md"
   assert_file "$target/wiki/index.md"
   assert_file "$target/wiki/log.jsonl"
-  assert_file "$target/.agents/skill-manifest.md"
-  assert_file "$target/.agents/skill-manifest.json"
   assert_file "$target/.codex/config.toml"
   assert_file "$target/.codex/hooks.json"
   assert_file "$target/.obsidian/app.json"
@@ -428,6 +425,8 @@ test_full_install_generates_expected_layout() {
   assert_file "$target/.obsidian/themes/Things/theme.css"
   assert_file "$target/.agents/skills/ar9av-skill/SKILL.md"
   assert_file "$target/.agents/skills/kepano-skill/SKILL.md"
+  [ ! -e "$target/.agents/skill-manifest.md" ] || fail_assertion "unexpected skill-manifest.md"
+  [ ! -e "$target/.agents/skill-manifest.json" ] || fail_assertion "unexpected skill-manifest.json"
   assert_executable "$target/.scripts/postrun.sh"
   assert_executable "$target/.scripts/check-index-log.sh"
   assert_executable "$target/.obsidian/plugins/obsidian-git/obsidian_askpass.sh"
@@ -438,10 +437,6 @@ test_full_install_generates_expected_layout() {
   [ ! -e "$target/.obsidian/workspace.json" ] || fail_assertion "unexpected workspace.json"
   [ ! -e "$target/.obsidian/workspaces.json" ] || fail_assertion "unexpected workspaces.json"
 
-  assert_contains "$target/.agents/skill-manifest.md" "347e85704c52474d13470a3919e4a5cd7e3809cb"
-  assert_contains "$target/.agents/skill-manifest.md" "553ef99aa3306dd23f268e1ba9af752577684f69"
-  assert_contains "$target/.agents/skill-manifest.json" '"name": "llm-wiki-installer"'
-  assert_contains "$target/.agents/skill-manifest.json" '"pinnedCommit": "347e85704c52474d13470a3919e4a5cd7e3809cb"'
   assert_contains "$out" "Generated llm-wiki knowledge vault at: $canonical_target"
 }
 

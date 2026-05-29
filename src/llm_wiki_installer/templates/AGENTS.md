@@ -21,9 +21,8 @@ The goal is to maintain a durable Markdown wiki compiled from user-approved raw 
 - `wiki/index.md` is the global machine-readable and human-readable index.
 - `wiki/log.jsonl` is the append-only JSONL audit ledger.
 - `outputs/` contains current final deliverables and exports.
-- `archive/` contains temporarily inactive old outputs only.
+- `archives/` contains temporarily inactive old outputs only.
 - `.agents/skills/` contains installed upstream skills, flattened by skill name.
-- `.agents/skill-manifest.md` and `.agents/skill-manifest.json` record installed skills and tool versions.
 - `.codex/config.toml` and `.codex/hooks.json` contain Codex adapter configuration.
 - `.scripts/` contains fixed project scripts.
 - `.obsidian/` contains stable Obsidian settings, pinned community plugin assets, and the Things theme.
@@ -50,7 +49,6 @@ Do not create:
 - Do not rewrite, fork, summarize, or create local substitutes for missing third-party upstream skills.
 - Do not generate a project-owned `SKILL.md`.
 - Upstream orchestration, policy, or controller Skills may be installed as upstream artifacts, but must not override or replace `AGENTS.md`.
-- Record upstream pinned commit SHAs, resolved commit SHAs, and installed Skill counts in `.agents/skill-manifest.md` and `.agents/skill-manifest.json`.
 
 ## Default retrieval order
 
@@ -69,7 +67,7 @@ When answering questions about the vault:
 - Compile `raw/` into `wiki/` within a clear task scope.
 - Send valuable answers or outputs back through `inbox/` before they become durable wiki knowledge.
 - Export final deliverables to `outputs/`.
-- Move inactive outputs to `archive/`.
+- Move inactive outputs to `archives/`.
 
 ## raw/ boundary
 
@@ -187,7 +185,7 @@ Use append-only JSONL entries. Each line must be one complete JSON object.
 ### archive-output
 
 ```json
-{"date":"YYYY-MM-DD","type":"archive-output","scope":"outputs/file.md -> archive/file.md","reason":"","review":"self-reviewed","impact":{"index_updated":"not-needed","references_checked":true},"files":["outputs/file.md","archive/file.md"]}
+{"date":"YYYY-MM-DD","type":"archive-output","scope":"outputs/file.md -> archives/file.md","reason":"","review":"self-reviewed","impact":{"index_updated":"not-needed","references_checked":true},"files":["outputs/file.md","archives/file.md"]}
 ```
 
 ### schema-update

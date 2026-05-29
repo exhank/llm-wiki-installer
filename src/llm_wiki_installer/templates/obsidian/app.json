@@ -8,5 +8,8 @@
   "newLinkFormat": "relative",
   "trashOption": "local",
   "promptDelete": false,
+  "userIgnoreFilters": [
+    "archives"
+  ],
   "mobilePullAction": "obsidian-git:pull"
 }

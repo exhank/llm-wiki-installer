@@ -16,7 +16,7 @@ upstream skills into a separate target repository.
   and target safety checks.
 - `src/llm_wiki_installer/install_options.py` parses CLI options.
 - `src/llm_wiki_installer/terminal_ui.py` owns interactive selector behavior.
-- `src/llm_wiki_installer/toolchain.py` checks dependency tools and versions.
+- `src/llm_wiki_installer/toolchain.py` checks dependency tools.
 - `src/llm_wiki_installer/upstream_skills.py` installs upstream Skill sources.
 - `src/llm_wiki_installer/target_layout.py` generates target directories and
   files.
@@ -37,8 +37,8 @@ upstream skills into a separate target repository.
 - `tests/test_installer.py` covers installer orchestration and generated
   layout behavior.
 - `tests/test_terminal_ui.py` covers interactive selector behavior.
-- `tests/test_manifest_templates.py` covers generated Markdown and JSON
-  manifest context.
+- `tests/test_template_context.py` covers template context and generated log
+  templates.
 - `tests/test_security_boundaries.py` covers symlink, clone, and target safety
   boundaries.
 - `tests/install_test.sh` is the shell-level integration harness with stubbed
@@ -99,8 +99,8 @@ Run focused tests with:
 - For safety-boundary changes, run the focused security tests and then the
   broader required stack:
   `.venv/bin/python -m pytest tests/test_security_boundaries.py`.
-- For manifest or template context changes, run:
-  `.venv/bin/python -m pytest tests/test_manifest_templates.py tests/test_installer.py`.
+- For template context changes, run:
+  `.venv/bin/python -m pytest tests/test_template_context.py tests/test_installer.py`.
 - If `make verify` is blocked by missing local tools, run the narrowest
   available check and report the blocker clearly.
 - Do not mark generated behavior complete until both the Python template tests
@@ -134,9 +134,8 @@ Run focused tests with:
 - Generated files must come from packaged templates under
   `src/llm_wiki_installer/templates/`.
 - The generated target layout currently includes `inbox/`, `raw/`, `wiki/`,
-  `wiki/maps/`, `outputs/`, `archive/`, `.agents/skills/upstream/`,
+  `wiki/maps/`, `outputs/`, `archives/`, `.agents/skills/upstream/`,
   `.codex/hooks.json`, `.scripts/`, root `AGENTS.md`, root `README.md`,
-  `.agents/skill-manifest.md`, `.agents/skill-manifest.json`,
   `.codex/config.toml`, `wiki/index.md`, `wiki/log.jsonl`, `.gitignore`, and the
   generated scripts.
 - Existing generated files are preserved unless `--force` is passed.
@@ -156,9 +155,6 @@ Run focused tests with:
   `rg` and `fzf`; all are selected by default.
 - Development-only Python tools are listed in `requirements-dev.txt` and
   configured in `pyproject.toml`; do not add runtime dependencies for tooling.
-- Record resolved upstream skill commits and tool versions in the generated
-  `.agents/skill-manifest.md` and `.agents/skill-manifest.json`, including
-  skipped selectable tools or skills.
 - Do not vendor third-party Python dependencies into this repository.
 
 ## Local Hook Policy
@@ -206,8 +202,8 @@ Run focused tests with:
   `template_context()` in `src/llm_wiki_installer/target_layout.py`.
 - Update `tests/test_installer.py` whenever template context, generated files,
   executable files, or required output text changes.
-- Update `tests/test_manifest_templates.py` when manifest fields, JSON values,
-  installer metadata, or skipped-tool/skipped-skill output changes.
+- Update `tests/test_template_context.py` when template context or generated
+  log output changes.
 - Keep generated Markdown compatible with standard GitHub-flavored Markdown.
 - Generated wiki, output, script, and config-description filenames should use
   lowercase kebab-case unless preserving a user-provided raw filename.
@@ -228,7 +224,7 @@ Run focused tests with:
 - Update `docs/technical-design.md` when the vault architecture or policy
   boundaries change.
 - Update `docs/llm-wiki-generation-guide.md` when generated paths, templates,
-  tool requirements, manifest fields, or verification flow change.
+  tool requirements, or verification flow change.
 - Update `docs/security-model.md` when trust boundaries, network behavior,
   symlink protection, command execution, or supply-chain policy changes.
 - Update `CHANGELOG.md` for release-visible installer behavior, packaging,

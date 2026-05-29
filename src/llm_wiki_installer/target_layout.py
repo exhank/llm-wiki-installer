@@ -4,11 +4,9 @@ import json
 from pathlib import Path
 from typing import Iterable, Mapping
 
-from . import __version__
 from .command_runner import run
 from .path_safety import reject_path_symlink
 from .template_renderer import render_template
-from .toolchain import ToolVersions
 from .upstream_skills import UpstreamInstall
 
 REQUIRED_DIRECTORIES = (
@@ -17,7 +15,7 @@ REQUIRED_DIRECTORIES = (
     "attachments",
     "wiki/maps",
     "outputs",
-    "archive",
+    "archives",
     ".agents/skills",
     ".scripts",
     ".obsidian/plugins/obsidian-git",
@@ -29,8 +27,6 @@ GENERATED_FILES = (
     ("README.md", "README.md"),
     ("wiki/index.md", "wiki-index.md"),
     ("wiki/log.jsonl", "wiki-log.jsonl"),
-    (".agents/skill-manifest.md", "skill-manifest.md"),
-    (".agents/skill-manifest.json", "skill-manifest.json"),
     (".codex/config.toml", "codex-config.toml"),
     (".codex/hooks.json", "codex-hooks.json"),
     (".scripts/postrun.sh", "postrun.sh"),
@@ -88,33 +84,16 @@ def prepare_target(target: Path) -> None:
 
 
 def template_context(
-    target: Path,
     today: str,
-    versions: ToolVersions,
     upstream: Mapping[str, UpstreamInstall],
     selected_tools: Iterable[str],
 ) -> Mapping[str, str]:
     selected = set(selected_tools)
     context = {
         "TODAY": today,
-        "TARGET": str(target),
-        "INSTALLER_VERSION": __version__,
-        "INSTALLER_NAME": "llm-wiki-installer",
-        "RG_VERSION": versions.rg,
-        "FZF_VERSION": versions.fzf,
-        "RG_RESULT": "installed" if "rg" in selected else "skipped",
-        "FZF_RESULT": "installed" if "fzf" in selected else "skipped",
         "RETRIEVAL_TOOLS": retrieval_tools_text(selected),
         "SEARCH_COMMANDS": search_commands_text(selected),
         "UPSTREAM_SKILL_POLICY": upstream_skill_policy_text(upstream),
-        "AR9AV_PINNED_COMMIT": upstream["Ar9av"].pinned_commit,
-        "AR9AV_COMMIT": upstream["Ar9av"].commit,
-        "AR9AV_COUNT": str(upstream["Ar9av"].skill_count),
-        "AR9AV_RESULT": upstream["Ar9av"].result,
-        "KEPANO_PINNED_COMMIT": upstream["kepano"].pinned_commit,
-        "KEPANO_COMMIT": upstream["kepano"].commit,
-        "KEPANO_COUNT": str(upstream["kepano"].skill_count),
-        "KEPANO_RESULT": upstream["kepano"].result,
     }
     return context | {
         f"{key}_JSON": json.dumps(value) for key, value in context.items()
@@ -137,7 +116,7 @@ def retrieval_tools_text(selected_tools: set[str]) -> str:
 def search_commands_text(selected_tools: set[str]) -> str:
     commands = []
     if "rg" in selected_tools:
-        commands.append('rg "keyword" wiki raw inbox outputs archive')
+        commands.append('rg "keyword" wiki raw inbox outputs archives')
     if "fzf" in selected_tools:
         commands.append("rg --files | fzf")
     if not commands:

@@ -34,13 +34,13 @@ If you use `uv`, the package is also published on PyPI as
 [`llm-wiki-installer`](https://pypi.org/project/llm-wiki-installer/):
 
 ```bash
-uvx --python 3.13 llm-wiki-installer
+uvx llm-wiki-installer
 ```
 
 For pinned automation, include the package version you want to reproduce:
 
 ```bash
-uvx --python 3.13 llm-wiki-installer==<version> --no-interactive /path/to/knowledge-vault
+uvx llm-wiki-installer==<version> --no-interactive /path/to/knowledge-vault
 ```
 
 ## Why This Exists
@@ -52,7 +52,7 @@ project sets up a stricter vault contract:
 - `wiki/` keeps compiled long-term Markdown knowledge.
 - `wiki/index.md` and `wiki/maps/` provide stable retrieval entry points.
 - `wiki/log.jsonl`, Git diff, and generated scripts make changes auditable.
-- Upstream Skills are copied as third-party artifacts and pinned in a manifest.
+- Upstream Skills are copied as third-party artifacts from pinned sources.
 
 ## Features
 
@@ -61,7 +61,7 @@ project sets up a stricter vault contract:
 - Interactive default-all selectors for dependency tools and upstream Skill
   sources.
 - Generated AGENTS policy, README, scripts, Codex config, index, log, and
-  Markdown plus JSON manifests.
+  stable Obsidian settings.
 - Generated stable Obsidian settings with bundled Things theme and obsidian-git
   plugin assets.
 - Pinned upstream Skill commits for reproducible generated vaults.
@@ -83,11 +83,9 @@ knowledge-vault/
 |   +-- maps/            # topic maps for navigation
 +-- outputs/             # generated reports and exports
 +-- inbox/               # incoming material awaiting review
-+-- archive/             # retired material
++-- archives/             # retired material
 +-- AGENTS.md            # runtime policy for agents
 +-- .agents/
-|   +-- skill-manifest.md
-|   +-- skill-manifest.json
 |   +-- skills/          # flattened pinned third-party Skill artifacts
 +-- .codex/
 |   +-- config.toml      # Codex project config
@@ -110,13 +108,13 @@ agents read AGENTS.md -> retrieve with rg/fzf -> verify against raw/
 Install with the published PyPI package:
 
 ```bash
-uvx --python 3.13 llm-wiki-installer /path/to/knowledge-vault
+uvx llm-wiki-installer /path/to/knowledge-vault
 ```
 
 Pin the package version for repeatable automation:
 
 ```bash
-uvx --python 3.13 llm-wiki-installer==<version> /path/to/knowledge-vault
+uvx llm-wiki-installer==<version> /path/to/knowledge-vault
 ```
 
 Install into the current directory with the streamed shell bootstrap:
@@ -219,11 +217,9 @@ raw/
 attachments/
 wiki/
 outputs/
-archive/
+archives/
 AGENTS.md
 README.md
-.agents/skill-manifest.md
-.agents/skill-manifest.json
 .agents/skills/
 .codex/config.toml
 .codex/hooks.json
@@ -234,11 +230,9 @@ README.md
 ```
 
 Selected upstream Skills are installed into `.agents/skills/`, flattened by
-skill directory name, and recorded in `.agents/skill-manifest.md` and
-`.agents/skill-manifest.json`. Skipped sources are recorded as skipped. Stable
-Obsidian settings, the Things theme, and pinned obsidian-git
-plugin assets are generated under `.obsidian/`; volatile workspace state is not
-generated.
+skill directory name. Stable Obsidian settings, the Things theme, and pinned
+obsidian-git plugin assets are generated under `.obsidian/`; volatile workspace
+state is not generated.
 
 ## Requirements
 

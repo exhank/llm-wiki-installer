@@ -20,7 +20,6 @@ from .toolchain import (
     DEPENDENCY_TOOL_OPTIONS,
     check_required_tools,
     select_dependency_tools,
-    tool_versions,
 )
 from .upstream_skills import install_upstream_skills, select_upstream_skills
 
@@ -54,7 +53,6 @@ def run_install(options: Options) -> None:
         install_missing=options.install_tools,
         quiet=options.json_output,
     )
-    versions = tool_versions(selected_tools)
 
     log("Prepare target", quiet=options.json_output)
     prepare_target(target)
@@ -63,7 +61,7 @@ def run_install(options: Options) -> None:
     upstream = install_upstream_skills(target, selected_skills)
 
     log("Generate target files", quiet=options.json_output)
-    context = template_context(target, today, versions, upstream, selected_tools)
+    context = template_context(today, upstream, selected_tools)
     write_generated_files(
         target, context, force=options.force, quiet=options.json_output
     )

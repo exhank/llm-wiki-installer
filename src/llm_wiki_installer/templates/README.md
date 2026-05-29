@@ -12,7 +12,7 @@ This is an LLM-native Obsidian Markdown knowledge vault.
 - `wiki/maps/` contains topic and project maps.
 - `wiki/log.jsonl` is the append-only JSONL audit ledger.
 - `outputs/` contains current deliverables.
-- `archive/` contains inactive old outputs.
+- `archives/` contains inactive old outputs.
 
 ## Directory guide
 
@@ -22,7 +22,7 @@ raw/       user-approved immutable source material
 attachments/ default Obsidian attachments
 wiki/      compiled long-term Markdown knowledge
 outputs/   final deliverables
-archive/   inactive old outputs only
+archives/   inactive old outputs only
 ```
 
 ## Common operations

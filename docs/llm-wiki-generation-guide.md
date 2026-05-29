@@ -2,7 +2,7 @@
 
 Verification date: 2026-05-28.
 
-This document guides LLMs in stably generating the llm-wiki setup wrapper, AGENTS file, hooks, scripts, README, manifest, upstream Skill installation, and verification flow for an LLM-Native Obsidian Markdown PKB.
+This document guides LLMs in stably generating the llm-wiki setup wrapper, AGENTS file, hooks, scripts, README, upstream Skill installation, and verification flow for an LLM-Native Obsidian Markdown PKB.
 
 ---
 
@@ -14,11 +14,8 @@ Generate repeatable, auditable, and verifiable repository-root initialization ar
 fixed filenames
 fixed directory structure
 fixed templates
-fixed dependency names with latest resolved versions recorded
 fixed check scripts
-fixed manifest
 fixed diff output
-latest selected upstream Skill versions recorded
 ```
 
 Implementation rule:
@@ -57,14 +54,12 @@ The setup wrapper must generate these paths at repository root:
 │  ├─ index.md
 │  └─ log.jsonl
 ├─ outputs/
-├─ archive/
+├─ archives/
 ├─ AGENTS.md
 ├─ README.md
 ├─ .agents/
 │  ├─ skills/
-│  │  └─ upstream/              # selected upstream sources only
-│  ├─ skill-manifest.md
-│  └─ skill-manifest.json
+│  │  └─ <skill-name>/          # selected upstream skills
 ├─ .codex/
 │  ├─ hooks/
 │  └─ config.toml
@@ -104,8 +99,7 @@ child path inside the generator repository.
 
 Upstream Skill directories are flattened into `.agents/skills/<skill-name>/`.
 When an upstream Skill source is skipped, it must not create legacy
-`.agents/skills/upstream/<source>/` directories. The manifest records the
-skipped state instead.
+`.agents/skills/upstream/<source>/` directories.
 
 ---
 
@@ -233,8 +227,6 @@ non-interactive behavior: all selected
 
 Python 3.13+ and Git remain bootstrap requirements.
 
-Skipped tools must be recorded as `skipped` in `.agents/skill-manifest.md` and `.agents/skill-manifest.json`.
-
 `--no-install-tools` is kept for CLI compatibility. `--offline` disables network
 bootstrap operations. When `--offline` is passed without an explicit `--skills`
 selection, upstream Skills default to `none`.
@@ -280,8 +272,6 @@ Do not generate .agents/skills/llm-wiki/SKILL.md.
 Do not generate any project-owned SKILL.md.
 Use AGENTS.md as the runtime coordinator and canonical agent policy.
 Use this guide as the generation-time specification.
-Use .agents/skill-manifest.md as the human installation and version record.
-Use .agents/skill-manifest.json as the machine-readable mirror.
 ```
 
 ### 5.2 Codex Adapter Rules
@@ -316,8 +306,6 @@ controls: Up/Down move, Space toggles, Enter accepts
 non-interactive behavior: all selected
 --no-interactive behavior: all selected
 ```
-
-Skipped sources must be recorded as `skipped` in `.agents/skill-manifest.md` and `.agents/skill-manifest.json`.
 
 #### 5.3.1 Ar9av/obsidian-wiki
 
@@ -373,93 +361,11 @@ Do not maintain a local allowlist.
 Do not treat Obsidian plugins as upstream Skills.
 Do not rewrite, fork, summarize, or generate local substitutes for missing third-party Skills.
 If the repo does not exist, clone fails, or no Skill directory is discovered -> setup fail.
-Record repo URL, pinned commit SHA, resolved commit SHA, install date, and installed Skill count.
 ```
 
 ---
 
-## 6. Skill Manifest Generation Spec
-
-Generate:
-
-```text
-.agents/skill-manifest.md
-.agents/skill-manifest.json
-```
-
-Must record:
-
-```md
-# Skill Manifest
-
-Generated: YYYY-MM-DD
-
-## Canonical Policy
-
-- AGENTS.md is the canonical agent policy.
-- This guide is the canonical generation spec.
-- Agent adapters are derived outputs.
-
-## Tools
-
-| Tool | Version | Result |
-|---|---|---|
-| rg | ... | installed \| skipped |
-| fzf | ... | installed \| skipped |
-
-## Upstream Skills
-
-| Repo | Pinned Commit SHA | Resolved Commit SHA | Install Date | Installed Skills | Result |
-|---|---|---|---|---:|---|
-| https://github.com/Ar9av/obsidian-wiki | ... | ... | YYYY-MM-DD | ... | installed \| skipped |
-| https://github.com/kepano/obsidian-skills | ... | ... | YYYY-MM-DD | ... | installed \| skipped |
-
-## llm-wiki Installer
-
-| Field | Value |
-|---|---|
-| Name | llm-wiki-installer |
-| Version | <installer version> |
-| Role | setup wrapper / generator suite |
-| Runtime Coordinator | AGENTS.md |
-| Project-Owned Skill | not generated |
-
-## Generated Files
-
-- AGENTS.md
-- README.md
-- wiki/index.md
-- wiki/log.jsonl
-- .scripts/postrun.sh
-- .scripts/check-index-log.sh
-- .obsidian/app.json
-- .obsidian/appearance.json
-- .obsidian/backlink.json
-- .obsidian/community-plugins.json
-- .obsidian/core-plugins.json
-- .obsidian/graph.json
-- .obsidian/hotkeys.json
-- .obsidian/plugins/obsidian-git/data.json
-- .obsidian/plugins/obsidian-git/main.js
-- .obsidian/plugins/obsidian-git/manifest.json
-- .obsidian/plugins/obsidian-git/obsidian_askpass.sh
-- .obsidian/plugins/obsidian-git/styles.css
-- .obsidian/themes/Things/manifest.json
-- .obsidian/themes/Things/theme.css
-- .codex/config.toml
-- .codex/hooks.json
-- .agents/skill-manifest.md
-- .agents/skill-manifest.json
-- .gitignore
-```
-
-The JSON manifest must contain the same installer, tool, upstream source,
-pin, resolved commit, result, and generated-file information in a
-machine-readable structure.
-
----
-
-## 7. AGENTS.md Generation Template
+## 6. AGENTS.md Generation Template
 
 `AGENTS.md` must be generated at the repository root.
 
@@ -495,9 +401,8 @@ The goal is to maintain a durable Markdown wiki compiled from user-approved raw 
 - `wiki/index.md` is the global machine-readable and human-readable index.
 - `wiki/log.jsonl` is the append-only JSONL audit ledger.
 - `outputs/` contains current final deliverables and exports.
-- `archive/` contains temporarily inactive old outputs only.
+- `archives/` contains temporarily inactive old outputs only.
 - `.agents/skills/` contains installed upstream skills, flattened by skill name.
-- `.agents/skill-manifest.md` and `.agents/skill-manifest.json` record installed skills and tool versions.
 - `.codex/config.toml` and `.codex/hooks.json` contain Codex adapter configuration.
 - `.scripts/` contains fixed project scripts.
 - `.obsidian/` contains stable Obsidian settings, pinned community plugin assets, and the Things theme.
@@ -525,7 +430,6 @@ Do not create:
 - Do not rewrite, fork, summarize, or create local substitutes for missing third-party upstream skills.
 - Do not generate a project-owned `SKILL.md`.
 - Upstream orchestration, policy, or controller Skills may be installed as upstream artifacts, but must not override or replace `AGENTS.md`.
-- Record upstream pinned commit SHAs, resolved commit SHAs, and installed Skill counts in `.agents/skill-manifest.md` and `.agents/skill-manifest.json`.
 
 ## Default retrieval order
 
@@ -534,7 +438,7 @@ When answering questions about the vault:
 1. Read `wiki/index.md`.
 2. Read relevant files under `wiki/maps/`.
 3. Read relevant wiki pages.
-4. Use installed tools recorded in `.agents/skill-manifest.md` as retrieval accelerators.
+4. Use installed retrieval tools as accelerators.
 5. Read `raw/` only for verification, missing evidence, or explicit source inspection.
 
 ## Default workflow
@@ -544,7 +448,7 @@ When answering questions about the vault:
 - Compile `raw/` into `wiki/` within a clear task scope.
 - Send valuable answers or outputs back through `inbox/` before they become durable wiki knowledge.
 - Export final deliverables to `outputs/`.
-- Move inactive outputs to `archive/`.
+- Move inactive outputs to `archives/`.
 
 ## raw/ boundary
 
@@ -662,7 +566,7 @@ Use append-only JSONL entries. Each line must be one complete JSON object.
 ### archive-output
 
 ```json
-{"date":"YYYY-MM-DD","type":"archive-output","scope":"outputs/file.md -> archive/file.md","reason":"","review":"self-reviewed","impact":{"index_updated":"not-needed","references_checked":true},"files":["outputs/file.md","archive/file.md"]}
+{"date":"YYYY-MM-DD","type":"archive-output","scope":"outputs/file.md -> archives/file.md","reason":"","review":"self-reviewed","impact":{"index_updated":"not-needed","references_checked":true},"files":["outputs/file.md","archives/file.md"]}
 ```
 
 ### schema-update
@@ -937,7 +841,7 @@ This is an LLM-native Obsidian Markdown knowledge vault.
 - `wiki/maps/` contains topic and project maps.
 - `wiki/log.jsonl` is the append-only JSONL audit ledger.
 - `outputs/` contains current deliverables.
-- `archive/` contains inactive old outputs.
+- `archives/` contains inactive old outputs.
 
 ## Directory guide
 
@@ -947,7 +851,7 @@ raw/       user-approved immutable source material
 attachments/ default Obsidian attachments
 wiki/      compiled long-term Markdown knowledge
 outputs/   final deliverables
-archive/   inactive old outputs only
+archives/   inactive old outputs only
 ```
 
 ## Common operations
@@ -982,7 +886,7 @@ wiki/log.jsonl
 ### Search
 
 ```bash
-rg "keyword" wiki raw inbox outputs archive
+rg "keyword" wiki raw inbox outputs archives
 rg --files | fzf
 ```
 
@@ -1084,9 +988,7 @@ fixed templates
 fixed script paths
 fixed AGENTS.md structure
 fixed README.md structure
-fixed Markdown and JSON manifest structure
 fixed review output
-pinned upstream Skill versions recorded in the manifests
 no project-owned runtime Skill generated
 ```
 
@@ -1114,8 +1016,6 @@ AGENTS.md exists
 README.md exists
 wiki/index.md exists
 wiki/log.jsonl exists
-.agents/skill-manifest.md exists
-.agents/skill-manifest.json exists
 .scripts/postrun.sh exists and executable
 .scripts/check-index-log.sh exists and executable
 .obsidian/app.json exists
@@ -1136,7 +1036,6 @@ Review output format:
 ```text
 generated files
 installed upstream skills
-tool versions
 checks run
 failures, if any
 git --no-pager diff --stat

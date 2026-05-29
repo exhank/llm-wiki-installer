@@ -34,11 +34,8 @@ from llm_wiki_installer.target_layout import (
 )
 from llm_wiki_installer.template_renderer import render_template
 from llm_wiki_installer.toolchain import (
-    ToolVersions,
     check_required_tools,
     require_executable,
-    tool_version,
-    tool_versions,
 )
 from llm_wiki_installer.upstream_skills import (
     UpstreamInstall,
@@ -313,24 +310,6 @@ def test_check_required_tools_skips_unselected_tools(
     check_required_tools(())
 
 
-def test_tool_versions_marks_unselected_tools_as_skipped(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setattr(
-        "llm_wiki_installer.toolchain.command_output",
-        lambda command, fallback="": f"{command[0]} version",
-    )
-    monkeypatch.setattr(
-        "llm_wiki_installer.toolchain.tool_version",
-        lambda tool: f"{tool} version",
-    )
-
-    versions = tool_versions(("rg",))
-
-    assert versions.rg == "rg version"
-    assert versions.fzf == "skipped"
-
-
 def test_prepare_target_creates_layout_and_initializes_git(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -382,15 +361,6 @@ def test_dynamic_template_text_matches_selected_tools() -> None:
 def test_render_template_rejects_missing_context() -> None:
     with pytest.raises(ValueError, match="unresolved template tokens"):
         render_template("wiki-log.jsonl", {})
-
-
-def test_tool_version_uses_first_output_line(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        "llm_wiki_installer.toolchain.command_output",
-        lambda _command, fallback="": "tool 1.0\nextra detail",
-    )
-
-    assert tool_version("tool") == "tool 1.0"
 
 
 def test_command_output_returns_fallback_on_failure(
@@ -493,6 +463,8 @@ def test_write_generated_files_preserves_existing_files_without_force(
 
     assert readme.read_text(encoding="utf-8") == "custom readme\n"
     assert (tmp_path / "AGENTS.md").is_file()
+    assert not (tmp_path / ".agents/skill-manifest.md").exists()
+    assert not (tmp_path / ".agents/skill-manifest.json").exists()
     assert (tmp_path / ".codex/hooks.json").is_file()
     assert not (tmp_path / ".codex/hooks").exists()
     assert (tmp_path / ".obsidian/app.json").is_file()
@@ -533,6 +505,9 @@ def test_generated_obsidian_plugin_and_theme_assets(
     assert json.loads(
         (tmp_path / ".obsidian/community-plugins.json").read_text(encoding="utf-8")
     ) == ["obsidian-git"]
+    assert json.loads((tmp_path / ".obsidian/app.json").read_text(encoding="utf-8"))[
+        "userIgnoreFilters"
+    ] == ["archives"]
     assert '"id": "obsidian-git"' in (
         tmp_path / ".obsidian/plugins/obsidian-git/manifest.json"
     ).read_text(encoding="utf-8")
@@ -852,13 +827,6 @@ def test_run_install_orchestrates_installer_flow(
         ),
     )
     monkeypatch.setattr(
-        "llm_wiki_installer.installer.tool_versions",
-        lambda _selected_tools: ToolVersions(
-            rg="rg-version",
-            fzf="fzf-version",
-        ),
-    )
-    monkeypatch.setattr(
         "llm_wiki_installer.installer.prepare_target",
         lambda _target: calls.append("prepare"),
     )
@@ -939,13 +907,6 @@ def test_run_install_with_no_selected_tools(
         "llm_wiki_installer.installer.check_required_tools",
         lambda selected_tools, **_kwargs: calls.append(
             f"tools:{','.join(selected_tools)}"
-        ),
-    )
-    monkeypatch.setattr(
-        "llm_wiki_installer.installer.tool_versions",
-        lambda _selected_tools: ToolVersions(
-            rg="skipped",
-            fzf="skipped",
         ),
     )
     monkeypatch.setattr(
