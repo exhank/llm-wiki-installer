@@ -381,7 +381,7 @@ def test_dynamic_template_text_matches_selected_tools() -> None:
 
 def test_render_template_rejects_missing_context() -> None:
     with pytest.raises(ValueError, match="unresolved template tokens"):
-        render_template("wiki-log.md", {})
+        render_template("wiki-log.jsonl", {})
 
 
 def test_tool_version_uses_first_output_line(monkeypatch: pytest.MonkeyPatch) -> None:

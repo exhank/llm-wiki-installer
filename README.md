@@ -51,7 +51,7 @@ project sets up a stricter vault contract:
 - `raw/` keeps user-approved source evidence.
 - `wiki/` keeps compiled long-term Markdown knowledge.
 - `wiki/index.md` and `wiki/maps/` provide stable retrieval entry points.
-- `wiki/log.md`, Git diff, and generated scripts make changes auditable.
+- `wiki/log.jsonl`, Git diff, and generated scripts make changes auditable.
 - Upstream Skills are copied as third-party artifacts and pinned in a manifest.
 
 ## Features
@@ -79,7 +79,7 @@ knowledge-vault/
 +-- attachments/         # Obsidian default attachment folder
 +-- wiki/                # durable compiled knowledge
 |   +-- index.md         # retrieval entry point
-|   +-- log.md           # change log
+|   +-- log.jsonl        # JSONL change log
 |   +-- maps/            # topic maps for navigation
 +-- outputs/             # generated reports and exports
 +-- inbox/               # incoming material awaiting review
@@ -100,7 +100,7 @@ The operating model is intentionally file-first:
 
 ```text
 approved sources -> raw/ -> wiki pages -> wiki/index.md + wiki/maps/
-                         \-> wiki/log.md -> Git diff review
+                         \-> wiki/log.jsonl -> Git diff review
 
 agents read AGENTS.md -> retrieve with rg/fzf -> verify against raw/
 ```

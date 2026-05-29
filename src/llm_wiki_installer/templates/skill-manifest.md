@@ -44,7 +44,7 @@ Generated: {{TODAY}}
 - AGENTS.md
 - README.md
 - wiki/index.md
-- wiki/log.md
+- wiki/log.jsonl
 - .scripts/postrun.sh
 - .scripts/check-index-log.sh
 - .obsidian/app.json

@@ -415,7 +415,7 @@ test_full_install_generates_expected_layout() {
   assert_file "$target/AGENTS.md"
   assert_file "$target/README.md"
   assert_file "$target/wiki/index.md"
-  assert_file "$target/wiki/log.md"
+  assert_file "$target/wiki/log.jsonl"
   assert_file "$target/.agents/skill-manifest.md"
   assert_file "$target/.agents/skill-manifest.json"
   assert_file "$target/.codex/config.toml"
@@ -500,8 +500,8 @@ test_generated_check_index_log_requires_index_and_log() {
   assert_contains "$out" "ERROR: wiki content changed but wiki/index.md was not updated."
 
   (
-    export STUB_GIT_DIFF_NAMES=$'wiki/new-page.md\nwiki/index.md\nwiki/log.md'
-    export STUB_GIT_LOG_DIFF=$'+- type: ingest'
+    export STUB_GIT_DIFF_NAMES=$'wiki/new-page.md\nwiki/index.md\nwiki/log.jsonl'
+    export STUB_GIT_LOG_DIFF=$'+{"date":"2026-05-29","type":"ingest","scope":"raw/source -> wiki/new-page.md","reason":"","review":"self-reviewed","impact":{"index_updated":true,"references_checked":true},"files":["raw/source","wiki/new-page.md","wiki/index.md"]}'
     cd "$target"
     run_with_stubs bash .scripts/check-index-log.sh
   ) >"$out" 2>&1
@@ -519,7 +519,7 @@ test_generated_check_index_log_requires_log_for_raw_changes() {
     sed -n '1,220p' "$out" >&2
     fail_assertion "expected raw/log failure"
   fi
-  assert_contains "$out" "ERROR: raw/ changed but wiki/log.md was not updated."
+  assert_contains "$out" "ERROR: raw/ changed but wiki/log.jsonl was not updated."
 }
 
 test_generated_check_index_log_rejects_bad_generated_names() {
@@ -581,7 +581,7 @@ test_generated_postrun_requires_raw_authorization() {
 
   (
     export ALLOW_RAW_CHANGE=1
-    export STUB_GIT_DIFF_NAMES=$'raw/source.md\nwiki/log.md'
+    export STUB_GIT_DIFF_NAMES=$'raw/source.md\nwiki/log.jsonl'
     cd "$target"
     run_with_stubs bash .scripts/postrun.sh
   ) >"$out" 2>&1

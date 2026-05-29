@@ -28,7 +28,7 @@ GENERATED_FILES = (
     ("AGENTS.md", "AGENTS.md"),
     ("README.md", "README.md"),
     ("wiki/index.md", "wiki-index.md"),
-    ("wiki/log.md", "wiki-log.md"),
+    ("wiki/log.jsonl", "wiki-log.jsonl"),
     (".agents/skill-manifest.md", "skill-manifest.md"),
     (".agents/skill-manifest.json", "skill-manifest.json"),
     (".codex/config.toml", "codex-config.toml"),

@@ -95,5 +95,42 @@ def test_render_json_manifest_template(
         ".obsidian/workspace.json"
         in manifest["obsidianAssets"]["excludedVolatileFiles"]
     )
+    assert "wiki/log.jsonl" in manifest["generatedFiles"]
     assert ".obsidian/plugins/obsidian-git/main.js" in manifest["generatedFiles"]
+    assert "{{" not in rendered
+
+
+def test_render_jsonl_log_template(template_context: dict[str, str]) -> None:
+    rendered = render_template("wiki-log.jsonl", template_context)
+
+    entries = [json.loads(line) for line in rendered.splitlines()]
+
+    assert entries == [
+        {
+            "date": "2026-05-28",
+            "type": "schema-update",
+            "scope": "llm-wiki initial repository artifacts",
+            "reason": (
+                "Generated fixed llm-wiki repository-root artifacts from "
+                "llm-wiki generator."
+            ),
+            "review": "self-reviewed",
+            "impact": {
+                "index_updated": True,
+                "references_checked": True,
+            },
+            "files": [
+                "AGENTS.md",
+                "README.md",
+                "wiki/index.md",
+                "wiki/log.jsonl",
+                ".agents/skill-manifest.md",
+                ".agents/skill-manifest.json",
+                ".codex/config.toml",
+                ".scripts/postrun.sh",
+                ".scripts/check-index-log.sh",
+                ".gitignore",
+            ],
+        }
+    ]
     assert "{{" not in rendered

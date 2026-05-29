@@ -19,7 +19,7 @@ The goal is to maintain a durable Markdown wiki compiled from user-approved raw 
 - `wiki/` contains compiled long-term Markdown knowledge.
 - `wiki/maps/` contains topic, project, research, and learning maps.
 - `wiki/index.md` is the global machine-readable and human-readable index.
-- `wiki/log.md` is the append-only audit ledger.
+- `wiki/log.jsonl` is the append-only JSONL audit ledger.
 - `outputs/` contains current final deliverables and exports.
 - `archive/` contains temporarily inactive old outputs only.
 - `.agents/skills/` contains installed upstream skills, flattened by skill name.
@@ -75,7 +75,7 @@ When answering questions about the vault:
 
 - Do not capture/import directly into `raw/`.
 - Do not modify, move, or delete `raw/` unless the user explicitly authorizes it.
-- Any `raw/` change must update `wiki/log.md`.
+- Any `raw/` change must update `wiki/log.jsonl`.
 - `ALLOW_RAW_CHANGE=1` is only a script-level explicit switch; it is not user authorization.
 
 ## Wiki page template
@@ -152,102 +152,48 @@ Recommended body:
 Fail and fix if:
 
 - `wiki/` content changed but `wiki/index.md` was not updated.
-- `wiki/` content changed but `wiki/log.md` was not updated.
-- Any file was deleted, moved, or renamed but `wiki/log.md` was not updated.
-- Any `raw/` file changed but `wiki/log.md` was not updated.
+- `wiki/` content changed but `wiki/log.jsonl` was not updated.
+- Any file was deleted, moved, or renamed but `wiki/log.jsonl` was not updated.
+- Any `raw/` file changed but `wiki/log.jsonl` was not updated.
 
 ## Log entry schemas
 
-Use append-only entries under the current date.
+Use append-only JSONL entries. Each line must be one complete JSON object.
 
 ### ingest
 
-```md
-- type: ingest
-  scope: raw/source -> wiki/page.md
-  reason: ""
-  review: self-reviewed
-  impact:
-    index_updated: true
-    references_checked: true
-  files:
-    - raw/source
-    - wiki/page.md
-    - wiki/index.md
+```json
+{"date":"YYYY-MM-DD","type":"ingest","scope":"raw/source -> wiki/page.md","reason":"","review":"self-reviewed","impact":{"index_updated":true,"references_checked":true},"files":["raw/source","wiki/page.md","wiki/index.md"]}
 ```
 
 ### fileback
 
-```md
-- type: fileback
-  scope: answer/output -> inbox/path.md
-  reason: ""
-  review: self-reviewed
-  impact:
-    index_updated: not-needed
-    references_checked: not-needed
-  files:
-    - inbox/path.md
+```json
+{"date":"YYYY-MM-DD","type":"fileback","scope":"answer/output -> inbox/path.md","reason":"","review":"self-reviewed","impact":{"index_updated":"not-needed","references_checked":"not-needed"},"files":["inbox/path.md"]}
 ```
 
 ### delete
 
-```md
-- type: delete
-  scope: path/to/file.md
-  reason: ""
-  authorized_by: user | explicit-task
-  review: self-reviewed
-  impact:
-    index_updated: true | false | not-needed
-    references_checked: true
-  files:
-    - path/to/file.md
+```json
+{"date":"YYYY-MM-DD","type":"delete","scope":"path/to/file.md","reason":"","authorized_by":"user | explicit-task","review":"self-reviewed","impact":{"index_updated":"true | false | not-needed","references_checked":true},"files":["path/to/file.md"]}
 ```
 
 ### move
 
-```md
-- type: move
-  scope: old/path.md -> new/path.md
-  reason: ""
-  authorized_by: user | explicit-task
-  review: self-reviewed
-  impact:
-    index_updated: true | false | not-needed
-    references_checked: true
-  files:
-    - old/path.md
-    - new/path.md
+```json
+{"date":"YYYY-MM-DD","type":"move","scope":"old/path.md -> new/path.md","reason":"","authorized_by":"user | explicit-task","review":"self-reviewed","impact":{"index_updated":"true | false | not-needed","references_checked":true},"files":["old/path.md","new/path.md"]}
 ```
 
 ### archive-output
 
-```md
-- type: archive-output
-  scope: outputs/file.md -> archive/file.md
-  reason: ""
-  review: self-reviewed
-  impact:
-    index_updated: not-needed
-    references_checked: true
-  files:
-    - outputs/file.md
-    - archive/file.md
+```json
+{"date":"YYYY-MM-DD","type":"archive-output","scope":"outputs/file.md -> archive/file.md","reason":"","review":"self-reviewed","impact":{"index_updated":"not-needed","references_checked":true},"files":["outputs/file.md","archive/file.md"]}
 ```
 
 ### schema-update
 
-```md
-- type: schema-update
-  scope: path/to/schema-or-script
-  reason: ""
-  review: self-reviewed
-  impact:
-    index_updated: not-needed
-    references_checked: true
-  files:
-    - path/to/schema-or-script
+```json
+{"date":"YYYY-MM-DD","type":"schema-update","scope":"path/to/schema-or-script","reason":"","review":"self-reviewed","impact":{"index_updated":"not-needed","references_checked":true},"files":["path/to/schema-or-script"]}
 ```
 
 ## Required post-write checks

@@ -99,7 +99,7 @@ retrieval accelerator = wiki/index.md + wiki/maps/ + rg + fzf
 ├─ wiki/                        # long-term Markdown Wiki compiled by LLMs
 │  ├─ maps/                     # topic entry points: MOC / Topic Map / Project Map / Learning Map
 │  ├─ index.md                  # global machine/human entry point; maintained automatically by agents
-│  └─ log.md                    # append-only compilation and change ledger
+│  └─ log.jsonl                    # append-only JSONL compilation and change ledger
 ├─ outputs/                     # current final deliverables, exports, externally facing artifacts
 ├─ archive/                     # old outputs that are not currently needed; not a knowledge archive
 ├─ AGENTS.md                    # repository-level canonical agent policy
@@ -146,7 +146,7 @@ examples/
 | `wiki/` | long-term knowledge layer compiled by LLMs | may write autonomously within clear scope | long-term maintenance; continuous evolution |
 | `wiki/maps/` | topic entry points; does not copy body text | writable | evolves with topics |
 | `wiki/index.md` | global entry point for machines and humans | maintained automatically by agents | must remain consistent with wiki discoverability |
-| `wiki/log.md` | append-only compilation and change ledger | append-only | audit record; does not replace Git log |
+| `wiki/log.jsonl` | append-only JSONL compilation and change ledger | append-only | audit record; does not replace Git log |
 | `outputs/` | current deliverables | writable within a clear task | regenerable; archivable |
 | `archive/` | cold storage for old outputs | writable within a clear archive task | does not carry knowledge structure |
 | `.agents/skills/` | selected upstream Skills, flattened by skill name | maintained by setup | recorded by manifest |
@@ -245,7 +245,7 @@ Exceptions:
 ```text
 After explicit user authorization, agents may delete specified raw files.
 After an explicit user trigger, agents may move specified inbox items into raw/.
-All raw deletions / moves must be written to wiki/log.md.
+All raw deletions / moves must be written to wiki/log.jsonl.
 ```
 
 Large files in `raw/` are tracked by Git by default. If repository size becomes a problem later, introduce Git LFS or an external storage manifest then; do not make the starter version complex prematurely.
@@ -262,7 +262,7 @@ Only this structure is fixed at startup:
 wiki/
 ├─ maps/
 ├─ index.md
-└─ log.md
+└─ log.jsonl
 ```
 
 Agents may create pages or subdirectories under `wiki/`, but the content must satisfy:
@@ -273,7 +273,7 @@ Agents may create pages or subdirectories under `wiki/`, but the content must sa
 3. It is not a one-off chat answer unless it will be reusable later.
 4. Important facts, judgments, inferences, conflicts, and outdated information are clearly expressed.
 5. It can be discovered from wiki/index.md or a map.
-6. Meaningful writes must append wiki/log.md.
+6. Meaningful writes must append wiki/log.jsonl.
 ```
 
 The internal structure of `wiki/` should evolve naturally from content under LLM guidance. This technical design does not predefine a fixed taxonomy.
@@ -320,9 +320,10 @@ map   = topic entry point
 
 Maps may express project views, topic views, learning paths, research paths, and source navigation. They must not copy body text, become a second index, or replace a task management system.
 
-### 9.3 `wiki/log.md`
+### 9.3 `wiki/log.jsonl`
 
-`log.md` is an append-only ledger. It does not replace Git log.
+`log.jsonl` is an append-only JSONL ledger. It does not replace Git log.
+Each line is one complete JSON object.
 
 Only meaningful events are recorded:
 
@@ -348,64 +349,26 @@ Ordinary read-only queries do not write to the log.
 
 ### 10.1 Delete File
 
-```md
-- type: delete
-  scope: path/to/file.md
-  reason: "Why this file is safe to delete."
-  authorized_by: user | explicit-task
-  review: self-reviewed
-  impact:
-    index_updated: true | false | not-needed
-    references_checked: true | false
-  files:
-    - path/to/file.md
+```json
+{"date":"YYYY-MM-DD","type":"delete","scope":"path/to/file.md","reason":"Why this file is safe to delete.","authorized_by":"user | explicit-task","review":"self-reviewed","impact":{"index_updated":"true | false | not-needed","references_checked":"true | false"},"files":["path/to/file.md"]}
 ```
 
 ### 10.2 Move / Rename File
 
-```md
-- type: move
-  scope: old/path.md -> new/path.md
-  reason: "Why this move is needed."
-  authorized_by: user | explicit-task
-  review: self-reviewed
-  impact:
-    index_updated: true | false | not-needed
-    references_checked: true | false
-  files:
-    - old/path.md
-    - new/path.md
+```json
+{"date":"YYYY-MM-DD","type":"move","scope":"old/path.md -> new/path.md","reason":"Why this move is needed.","authorized_by":"user | explicit-task","review":"self-reviewed","impact":{"index_updated":"true | false | not-needed","references_checked":"true | false"},"files":["old/path.md","new/path.md"]}
 ```
 
 ### 10.3 wiki Compilation
 
-```md
-- type: ingest
-  scope: raw/source.pdf -> wiki/page.md
-  reason: "Compiled durable knowledge from raw source."
-  review: self-reviewed
-  impact:
-    index_updated: true
-    references_checked: true
-  files:
-    - raw/source.pdf
-    - wiki/page.md
-    - wiki/index.md
+```json
+{"date":"YYYY-MM-DD","type":"ingest","scope":"raw/source.pdf -> wiki/page.md","reason":"Compiled durable knowledge from raw source.","review":"self-reviewed","impact":{"index_updated":true,"references_checked":true},"files":["raw/source.pdf","wiki/page.md","wiki/index.md"]}
 ```
 
 ### 10.4 outputs Archive
 
-```md
-- type: archive-output
-  scope: outputs/report-v1.md -> archive/report-v1.md
-  reason: "Old deliverable no longer active."
-  review: self-reviewed
-  impact:
-    index_updated: not-needed
-    references_checked: true
-  files:
-    - outputs/report-v1.md
-    - archive/report-v1.md
+```json
+{"date":"YYYY-MM-DD","type":"archive-output","scope":"outputs/report-v1.md -> archive/report-v1.md","reason":"Old deliverable no longer active.","review":"self-reviewed","impact":{"index_updated":"not-needed","references_checked":true},"files":["outputs/report-v1.md","archive/report-v1.md"]}
 ```
 
 ---
@@ -481,7 +444,7 @@ Default write boundaries:
 Agents may write inbox/.
 Agents may write wiki/ within a clear scope.
 Agents may automatically maintain wiki/index.md.
-Agents may append wiki/log.md.
+Agents may append wiki/log.jsonl.
 Agents may write outputs/ within a clear task.
 Agents may write archive/ within a clear archive task.
 Agents may maintain .agents/skill-manifest.md, .scripts/, .codex/hooks.json, and .codex/config.toml.
@@ -495,7 +458,7 @@ Deletion boundaries:
 
 ```text
 Agents may delete / move / rename files only with user authorization or a clear task requirement.
-Deleting / moving / renaming any file must append wiki/log.md.
+Deleting / moving / renaming any file must append wiki/log.jsonl.
 Deletes / moves / renames that affect wiki discoverability must also update wiki/index.md.
 ```
 
@@ -580,7 +543,7 @@ LLMs compile autonomously within a clear scope and update these files when neede
 ```text
 wiki/index.md
 wiki/maps/*
-wiki/log.md
+wiki/log.jsonl
 ```
 
 ### 14.4 Query
@@ -622,7 +585,7 @@ Only archive old outputs:
 outputs/old-report.md -> archive/old-report.md
 ```
 
-Archiving must be written to `wiki/log.md`.
+Archiving must be written to `wiki/log.jsonl`.
 
 ### 14.8 Review
 

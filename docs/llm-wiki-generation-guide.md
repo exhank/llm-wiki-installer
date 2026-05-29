@@ -55,7 +55,7 @@ The setup wrapper must generate these paths at repository root:
 ├─ wiki/
 │  ├─ maps/
 │  ├─ index.md
-│  └─ log.md
+│  └─ log.jsonl
 ├─ outputs/
 ├─ archive/
 ├─ AGENTS.md
@@ -129,7 +129,7 @@ Rules:
 
 ```text
 wiki/index.md may omit frontmatter.
-wiki/log.md may omit frontmatter.
+wiki/log.jsonl uses JSONL and does not use frontmatter.
 wiki/maps/*.md uses type: map.
 Do not use complex nested metadata.
 Put Sources / Evidence in the body.
@@ -429,7 +429,7 @@ Generated: YYYY-MM-DD
 - AGENTS.md
 - README.md
 - wiki/index.md
-- wiki/log.md
+- wiki/log.jsonl
 - .scripts/postrun.sh
 - .scripts/check-index-log.sh
 - .obsidian/app.json
@@ -493,7 +493,7 @@ The goal is to maintain a durable Markdown wiki compiled from user-approved raw 
 - `wiki/` contains compiled long-term Markdown knowledge.
 - `wiki/maps/` contains topic, project, research, and learning maps.
 - `wiki/index.md` is the global machine-readable and human-readable index.
-- `wiki/log.md` is the append-only audit ledger.
+- `wiki/log.jsonl` is the append-only JSONL audit ledger.
 - `outputs/` contains current final deliverables and exports.
 - `archive/` contains temporarily inactive old outputs only.
 - `.agents/skills/` contains installed upstream skills, flattened by skill name.
@@ -550,7 +550,7 @@ When answering questions about the vault:
 
 - Do not capture/import directly into `raw/`.
 - Do not modify, move, or delete `raw/` unless the user explicitly authorizes it.
-- Any `raw/` change must update `wiki/log.md`.
+- Any `raw/` change must update `wiki/log.jsonl`.
 - `ALLOW_RAW_CHANGE=1` is only a script-level explicit switch; it is not user authorization.
 
 ## Wiki page template
@@ -627,102 +627,48 @@ Recommended body:
 Fail and fix if:
 
 - `wiki/` content changed but `wiki/index.md` was not updated.
-- `wiki/` content changed but `wiki/log.md` was not updated.
-- Any file was deleted, moved, or renamed but `wiki/log.md` was not updated.
-- Any `raw/` file changed but `wiki/log.md` was not updated.
+- `wiki/` content changed but `wiki/log.jsonl` was not updated.
+- Any file was deleted, moved, or renamed but `wiki/log.jsonl` was not updated.
+- Any `raw/` file changed but `wiki/log.jsonl` was not updated.
 
 ## Log entry schemas
 
-Use append-only entries under the current date.
+Use append-only JSONL entries. Each line must be one complete JSON object.
 
 ### ingest
 
-```md
-- type: ingest
-  scope: raw/source -> wiki/page.md
-  reason: ""
-  review: self-reviewed
-  impact:
-    index_updated: true
-    references_checked: true
-  files:
-    - raw/source
-    - wiki/page.md
-    - wiki/index.md
+```json
+{"date":"YYYY-MM-DD","type":"ingest","scope":"raw/source -> wiki/page.md","reason":"","review":"self-reviewed","impact":{"index_updated":true,"references_checked":true},"files":["raw/source","wiki/page.md","wiki/index.md"]}
 ```
 
 ### fileback
 
-```md
-- type: fileback
-  scope: answer/output -> inbox/path.md
-  reason: ""
-  review: self-reviewed
-  impact:
-    index_updated: not-needed
-    references_checked: not-needed
-  files:
-    - inbox/path.md
+```json
+{"date":"YYYY-MM-DD","type":"fileback","scope":"answer/output -> inbox/path.md","reason":"","review":"self-reviewed","impact":{"index_updated":"not-needed","references_checked":"not-needed"},"files":["inbox/path.md"]}
 ```
 
 ### delete
 
-```md
-- type: delete
-  scope: path/to/file.md
-  reason: ""
-  authorized_by: user | explicit-task
-  review: self-reviewed
-  impact:
-    index_updated: true | false | not-needed
-    references_checked: true
-  files:
-    - path/to/file.md
+```json
+{"date":"YYYY-MM-DD","type":"delete","scope":"path/to/file.md","reason":"","authorized_by":"user | explicit-task","review":"self-reviewed","impact":{"index_updated":"true | false | not-needed","references_checked":true},"files":["path/to/file.md"]}
 ```
 
 ### move
 
-```md
-- type: move
-  scope: old/path.md -> new/path.md
-  reason: ""
-  authorized_by: user | explicit-task
-  review: self-reviewed
-  impact:
-    index_updated: true | false | not-needed
-    references_checked: true
-  files:
-    - old/path.md
-    - new/path.md
+```json
+{"date":"YYYY-MM-DD","type":"move","scope":"old/path.md -> new/path.md","reason":"","authorized_by":"user | explicit-task","review":"self-reviewed","impact":{"index_updated":"true | false | not-needed","references_checked":true},"files":["old/path.md","new/path.md"]}
 ```
 
 ### archive-output
 
-```md
-- type: archive-output
-  scope: outputs/file.md -> archive/file.md
-  reason: ""
-  review: self-reviewed
-  impact:
-    index_updated: not-needed
-    references_checked: true
-  files:
-    - outputs/file.md
-    - archive/file.md
+```json
+{"date":"YYYY-MM-DD","type":"archive-output","scope":"outputs/file.md -> archive/file.md","reason":"","review":"self-reviewed","impact":{"index_updated":"not-needed","references_checked":true},"files":["outputs/file.md","archive/file.md"]}
 ```
 
 ### schema-update
 
-```md
-- type: schema-update
-  scope: path/to/schema-or-script
-  reason: ""
-  review: self-reviewed
-  impact:
-    index_updated: not-needed
-    references_checked: true
-  files:
-    - path/to/schema-or-script
+```json
+{"date":"YYYY-MM-DD","type":"schema-update","scope":"path/to/schema-or-script","reason":"","review":"self-reviewed","impact":{"index_updated":"not-needed","references_checked":true},"files":["path/to/schema-or-script"]}
 ```
 
 ## Required post-write checks
@@ -822,8 +768,8 @@ if changed_paths raw | grep -q .; then
     fail "raw/ changed. Set ALLOW_RAW_CHANGE=1 only when the user explicitly authorized this raw change."
   fi
 
-  if ! changed_paths wiki/log.md | grep -q .; then
-    fail "raw/ changed but wiki/log.md was not updated."
+  if ! changed_paths wiki/log.jsonl | grep -q .; then
+    fail "raw/ changed but wiki/log.jsonl was not updated."
   fi
 fi
 
@@ -874,13 +820,13 @@ fi
 
 wiki_content_changed="$(
   grep -E '^wiki/' "$tmp_changed" \
-    | grep -v -E '^wiki/index\.md$|^wiki/log\.md$' \
+    | grep -v -E '^wiki/index\.md$|^wiki/log\.jsonl$' \
     || true
 )"
 
 if [ -n "$wiki_content_changed" ]; then
   has_changed '^wiki/index\.md$' || fail "wiki content changed but wiki/index.md was not updated."
-  has_changed '^wiki/log\.md$' || fail "wiki content changed but wiki/log.md was not updated."
+  has_changed '^wiki/log\.jsonl$' || fail "wiki content changed but wiki/log.jsonl was not updated."
 fi
 
 raw_changed="$(
@@ -889,7 +835,7 @@ raw_changed="$(
 )"
 
 if [ -n "$raw_changed" ]; then
-  has_changed '^wiki/log\.md$' || fail "raw/ changed but wiki/log.md was not updated."
+  has_changed '^wiki/log\.jsonl$' || fail "raw/ changed but wiki/log.jsonl was not updated."
 fi
 
 file_structure_changed="$(
@@ -901,7 +847,7 @@ file_structure_changed="$(
 )"
 
 if [ -n "$file_structure_changed" ]; then
-  has_changed '^wiki/log\.md$' || fail "file deleted, moved, renamed, or copied but wiki/log.md was not updated."
+  has_changed '^wiki/log\.jsonl$' || fail "file deleted, moved, renamed, or copied but wiki/log.jsonl was not updated."
 fi
 
 bad_generated_names="$(
@@ -915,15 +861,18 @@ if [ -n "$bad_generated_names" ]; then
   fail "Generated wiki/output/script/config-description filenames must use lowercase kebab-case."
 fi
 
-if has_changed '^wiki/log\.md$'; then
+if has_changed '^wiki/log\.jsonl$'; then
   if {
-      git diff --unified=0 -- wiki/log.md || true
-      git diff --cached --unified=0 -- wiki/log.md || true
+      git diff --unified=0 -- wiki/log.jsonl || true
+      git diff --cached --unified=0 -- wiki/log.jsonl || true
+      if git ls-files --others --exclude-standard -- wiki/log.jsonl | grep -q '^wiki/log\.jsonl$'; then
+        sed 's/^/+/' wiki/log.jsonl
+      fi
     } \
-    | grep -E '^\+.*type: (ingest|fileback|delete|move|archive-output|schema-update|rename|lint|index-update|map-update)' >/dev/null; then
+    | grep -E '^\+.*"type"[[:space:]]*:[[:space:]]*"(ingest|fileback|delete|move|archive-output|schema-update|rename|lint|index-update|map-update)"' >/dev/null; then
     :
   else
-    fail "wiki/log.md changed but no recognized log entry type was added."
+    fail "wiki/log.jsonl changed but no recognized log entry type was added."
   fi
 fi
 
@@ -986,7 +935,7 @@ This is an LLM-native Obsidian Markdown knowledge vault.
 - `wiki/` is the compiled long-term Markdown knowledge layer.
 - `wiki/index.md` is the global entry.
 - `wiki/maps/` contains topic and project maps.
-- `wiki/log.md` is the append-only audit ledger.
+- `wiki/log.jsonl` is the append-only JSONL audit ledger.
 - `outputs/` contains current deliverables.
 - `archive/` contains inactive old outputs.
 
@@ -1027,7 +976,7 @@ The agent must update:
 
 ```text
 wiki/index.md
-wiki/log.md
+wiki/log.jsonl
 ```
 
 ### Search
@@ -1164,7 +1113,7 @@ Before final output, confirm:
 AGENTS.md exists
 README.md exists
 wiki/index.md exists
-wiki/log.md exists
+wiki/log.jsonl exists
 .agents/skill-manifest.md exists
 .agents/skill-manifest.json exists
 .scripts/postrun.sh exists and executable

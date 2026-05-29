@@ -15,6 +15,8 @@ when the package version in `src/llm_wiki_installer/__init__.py` changes.
   of namespacing them under `.agents/skills/upstream/<source>/`.
 - Generate `.codex/hooks.json` for Codex project hook configuration instead of
   creating an unused `.codex/hooks/` directory.
+- Generate `wiki/log.jsonl` as the append-only audit ledger instead of
+  `wiki/log.md`.
 
 ## 0.1.5 - 2026-05-29
 

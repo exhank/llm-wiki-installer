@@ -137,7 +137,7 @@ Run focused tests with:
   `wiki/maps/`, `outputs/`, `archive/`, `.agents/skills/upstream/`,
   `.codex/hooks.json`, `.scripts/`, root `AGENTS.md`, root `README.md`,
   `.agents/skill-manifest.md`, `.agents/skill-manifest.json`,
-  `.codex/config.toml`, `wiki/index.md`, `wiki/log.md`, `.gitignore`, and the
+  `.codex/config.toml`, `wiki/index.md`, `wiki/log.jsonl`, `.gitignore`, and the
   generated scripts.
 - Existing generated files are preserved unless `--force` is passed.
 - Generated `.scripts/*.sh` files must be executable.

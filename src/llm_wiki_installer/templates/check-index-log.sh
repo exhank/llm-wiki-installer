@@ -26,13 +26,13 @@ fi
 
 wiki_content_changed="$(
   grep -E '^wiki/' "$tmp_changed" \
-    | grep -v -E '^wiki/index\.md$|^wiki/log\.md$' \
+    | grep -v -E '^wiki/index\.md$|^wiki/log\.jsonl$' \
     || true
 )"
 
 if [ -n "$wiki_content_changed" ]; then
   has_changed '^wiki/index\.md$' || fail "wiki content changed but wiki/index.md was not updated."
-  has_changed '^wiki/log\.md$' || fail "wiki content changed but wiki/log.md was not updated."
+  has_changed '^wiki/log\.jsonl$' || fail "wiki content changed but wiki/log.jsonl was not updated."
 fi
 
 raw_changed="$(
@@ -41,7 +41,7 @@ raw_changed="$(
 )"
 
 if [ -n "$raw_changed" ]; then
-  has_changed '^wiki/log\.md$' || fail "raw/ changed but wiki/log.md was not updated."
+  has_changed '^wiki/log\.jsonl$' || fail "raw/ changed but wiki/log.jsonl was not updated."
 fi
 
 file_structure_changed="$(
@@ -53,7 +53,7 @@ file_structure_changed="$(
 )"
 
 if [ -n "$file_structure_changed" ]; then
-  has_changed '^wiki/log\.md$' || fail "file deleted, moved, renamed, or copied but wiki/log.md was not updated."
+  has_changed '^wiki/log\.jsonl$' || fail "file deleted, moved, renamed, or copied but wiki/log.jsonl was not updated."
 fi
 
 bad_generated_names="$(
@@ -67,18 +67,18 @@ if [ -n "$bad_generated_names" ]; then
   fail "Generated wiki/output/script/config-description filenames must use lowercase kebab-case."
 fi
 
-if has_changed '^wiki/log\.md$'; then
+if has_changed '^wiki/log\.jsonl$'; then
   if {
-      git diff --unified=0 -- wiki/log.md || true
-      git diff --cached --unified=0 -- wiki/log.md || true
-      if git ls-files --others --exclude-standard -- wiki/log.md | grep -q '^wiki/log\.md$'; then
-        sed 's/^/+/' wiki/log.md
+      git diff --unified=0 -- wiki/log.jsonl || true
+      git diff --cached --unified=0 -- wiki/log.jsonl || true
+      if git ls-files --others --exclude-standard -- wiki/log.jsonl | grep -q '^wiki/log\.jsonl$'; then
+        sed 's/^/+/' wiki/log.jsonl
       fi
     } \
-    | grep -E '^\+.*type: (ingest|fileback|delete|move|archive-output|schema-update|rename|lint|index-update|map-update)' >/dev/null; then
+    | grep -E '^\+.*"type"[[:space:]]*:[[:space:]]*"(ingest|fileback|delete|move|archive-output|schema-update|rename|lint|index-update|map-update)"' >/dev/null; then
     :
   else
-    fail "wiki/log.md changed but no recognized log entry type was added."
+    fail "wiki/log.jsonl changed but no recognized log entry type was added."
   fi
 fi
 

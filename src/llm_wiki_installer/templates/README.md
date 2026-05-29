@@ -10,7 +10,7 @@ This is an LLM-native Obsidian Markdown knowledge vault.
 - `wiki/` is the compiled long-term Markdown knowledge layer.
 - `wiki/index.md` is the global entry.
 - `wiki/maps/` contains topic and project maps.
-- `wiki/log.md` is the append-only audit ledger.
+- `wiki/log.jsonl` is the append-only JSONL audit ledger.
 - `outputs/` contains current deliverables.
 - `archive/` contains inactive old outputs.
 
@@ -51,7 +51,7 @@ The agent must update:
 
 ```text
 wiki/index.md
-wiki/log.md
+wiki/log.jsonl
 ```
 
 ### Search

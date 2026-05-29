@@ -68,8 +68,8 @@ if changed_paths raw | grep -q .; then
     fail "raw/ changed. Set ALLOW_RAW_CHANGE=1 only when the user explicitly authorized this raw change."
   fi
 
-  if ! changed_paths wiki/log.md | grep -q .; then
-    fail "raw/ changed but wiki/log.md was not updated."
+  if ! changed_paths wiki/log.jsonl | grep -q .; then
+    fail "raw/ changed but wiki/log.jsonl was not updated."
   fi
 fi
 
