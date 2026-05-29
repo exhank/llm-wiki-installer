@@ -1,0 +1,689 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+TEST_TMP="$(mktemp -d "${TMPDIR:-/tmp}/llm-wiki-install-tests.XXXXXX")"
+REAL_PYTHON3="$(command -v python3)"
+PASS_COUNT=0
+FAIL_COUNT=0
+
+trap 'rm -rf "$TEST_TMP"' EXIT
+
+fail_assertion() {
+  echo "ASSERTION FAILED: $1" >&2
+  return 1
+}
+
+assert_file() {
+  [ -f "$1" ] || fail_assertion "expected file: $1"
+}
+
+assert_dir() {
+  [ -d "$1" ] || fail_assertion "expected directory: $1"
+}
+
+assert_not_dir() {
+  [ ! -d "$1" ] || fail_assertion "unexpected directory: $1"
+}
+
+assert_executable() {
+  [ -x "$1" ] || fail_assertion "expected executable: $1"
+}
+
+assert_contains() {
+  local file="$1"
+  local expected="$2"
+  grep -F -- "$expected" "$file" >/dev/null || {
+    echo "----- $file -----" >&2
+    sed -n '1,220p' "$file" >&2
+    fail_assertion "expected '$expected' in $file"
+  }
+}
+
+assert_not_contains() {
+  local file="$1"
+  local unexpected="$2"
+  ! grep -F -- "$unexpected" "$file" >/dev/null || {
+    echo "----- $file -----" >&2
+    sed -n '1,220p' "$file" >&2
+    fail_assertion "did not expect '$unexpected' in $file"
+  }
+}
+
+write_stub_tools() {
+  local bin="$1"
+  mkdir -p "$bin"
+
+  cat >"$bin/python3" <<EOF_PYTHON3
+#!/usr/bin/env bash
+exec "$REAL_PYTHON3" "\$@"
+EOF_PYTHON3
+
+  cat >"$bin/node" <<'EOF_NODE'
+#!/usr/bin/env bash
+set -euo pipefail
+if [ "${1:-}" = "--version" ]; then
+  echo "${STUB_NODE_VERSION:-v22.3.0}"
+  exit 0
+fi
+exit 0
+EOF_NODE
+
+  cat >"$bin/npm" <<'EOF_NPM'
+#!/usr/bin/env bash
+set -euo pipefail
+if [ "${1:-}" = "--version" ]; then
+  echo "${STUB_NPM_VERSION:-10.8.0}"
+  exit 0
+fi
+if [ "${1:-}" = "install" ]; then
+  if [ -n "${TEST_NPM_LOG:-}" ]; then
+    echo "npm $*" >>"$TEST_NPM_LOG"
+  fi
+  if [ "${*: -1}" = "@tobilu/qmd" ]; then
+    qmd_path="$(cd "$(dirname "$0")" && pwd -P)/qmd"
+    cat >"$qmd_path" <<'EOF_INSTALLED_QMD'
+#!/usr/bin/env bash
+set -euo pipefail
+
+log_qmd() {
+  if [ -n "${TEST_QMD_LOG:-}" ]; then
+    echo "qmd $*" >>"$TEST_QMD_LOG"
+  fi
+}
+
+case "${1:-}" in
+  --version)
+    echo "qmd 1.2.3"
+    ;;
+  collection)
+    case "${2:-}" in
+      show)
+        log_qmd "$*"
+        if [ -n "${QMD_COLLECTION_PATH:-}" ]; then
+          echo "Name: ${3:-knowledge-vault}"
+          echo "Path: $QMD_COLLECTION_PATH"
+          exit 0
+        fi
+        exit 1
+        ;;
+      add|remove)
+        log_qmd "$*"
+        ;;
+      *)
+        echo "unexpected qmd collection command: $*" >&2
+        exit 2
+        ;;
+    esac
+    ;;
+  update|embed)
+    log_qmd "$*"
+    ;;
+  *)
+    echo "unexpected qmd command: $*" >&2
+    exit 2
+    ;;
+esac
+EOF_INSTALLED_QMD
+    chmod +x "$qmd_path"
+  fi
+  exit 0
+fi
+exit 0
+EOF_NPM
+
+  cat >"$bin/rg" <<'EOF_RG'
+#!/usr/bin/env bash
+set -euo pipefail
+if [ "${1:-}" = "--version" ]; then
+  echo "ripgrep 14.1.0"
+fi
+EOF_RG
+
+  cat >"$bin/fzf" <<'EOF_FZF'
+#!/usr/bin/env bash
+set -euo pipefail
+if [ "${1:-}" = "--version" ]; then
+  echo "0.56.0 (test)"
+fi
+EOF_FZF
+
+  cat >"$bin/qmd" <<'EOF_QMD'
+#!/usr/bin/env bash
+set -euo pipefail
+
+log_qmd() {
+  if [ -n "${TEST_QMD_LOG:-}" ]; then
+    echo "qmd $*" >>"$TEST_QMD_LOG"
+  fi
+}
+
+case "${1:-}" in
+  --version)
+    echo "qmd 1.2.3"
+    ;;
+  collection)
+    case "${2:-}" in
+      show)
+        log_qmd "$*"
+        if [ -n "${QMD_COLLECTION_PATH:-}" ]; then
+          echo "Name: ${3:-knowledge-vault}"
+          echo "Path: $QMD_COLLECTION_PATH"
+          exit 0
+        fi
+        exit 1
+        ;;
+      add|remove)
+        log_qmd "$*"
+        ;;
+      *)
+        echo "unexpected qmd collection command: $*" >&2
+        exit 2
+        ;;
+    esac
+    ;;
+  update|embed)
+    log_qmd "$*"
+    ;;
+  *)
+    echo "unexpected qmd command: $*" >&2
+    exit 2
+    ;;
+esac
+EOF_QMD
+
+  cat >"$bin/git" <<'EOF_GIT'
+#!/usr/bin/env bash
+set -euo pipefail
+
+contains_arg() {
+  local expected="$1"
+  shift
+  local arg=""
+  for arg in "$@"; do
+    [ "$arg" = "$expected" ] && return 0
+  done
+  return 1
+}
+
+repo_dir=""
+if [ "${1:-}" = "-C" ]; then
+  repo_dir="$2"
+  shift 2
+fi
+
+cmd="${1:-}"
+case "$cmd" in
+  clone)
+    repo_url="${@: -2:1}"
+    target="${@: -1}"
+    mkdir -p "$target"
+    if [ "${STUB_GIT_EMPTY_REPO:-0}" = "1" ]; then
+      exit 0
+    fi
+    if [ "${STUB_GIT_NO_SKILL:-0}" = "1" ]; then
+      mkdir -p "$target/.skills/empty"
+      echo "no skill here" >"$target/.skills/empty/README.md"
+      exit 0
+    fi
+    case "$repo_url" in
+      *Ar9av*)
+        mkdir -p "$target/.skills/ar9av-skill"
+        echo "# Ar9av Skill" >"$target/.skills/ar9av-skill/SKILL.md"
+        ;;
+      *kepano*)
+        mkdir -p "$target/skills/kepano-skill"
+        echo "# Kepano Skill" >"$target/skills/kepano-skill/SKILL.md"
+        ;;
+      *)
+        mkdir -p "$target/.skills/default-skill"
+        echo "# Default Skill" >"$target/.skills/default-skill/SKILL.md"
+        ;;
+    esac
+    ;;
+  init)
+    mkdir -p "${repo_dir:-.}/.git"
+    ;;
+  rev-parse)
+    case "$repo_dir" in
+      *Ar9av*) echo "347e85704c52474d13470a3919e4a5cd7e3809cb" ;;
+      *kepano*) echo "553ef99aa3306dd23f268e1ba9af752577684f69" ;;
+      *) echo "cccccccccccccccccccccccccccccccccccccccc" ;;
+    esac
+    ;;
+  diff)
+    if contains_arg "--name-only" "$@"; then
+      printf '%s\n' "${STUB_GIT_DIFF_NAMES:-}" | sed '/^$/d'
+    elif contains_arg "--name-status" "$@"; then
+      printf '%s\n' "${STUB_GIT_NAME_STATUS:-}" | sed '/^$/d'
+    elif contains_arg "--unified=0" "$@"; then
+      printf '%s\n' "${STUB_GIT_LOG_DIFF:-}" | sed '/^$/d'
+    fi
+    ;;
+  status)
+    printf '%s\n' "${STUB_GIT_STATUS:-}" | sed '/^$/d'
+    ;;
+  ls-files)
+    printf '%s\n' "${STUB_GIT_OTHERS:-}" | sed '/^$/d'
+    ;;
+  *)
+    ;;
+esac
+EOF_GIT
+
+  chmod +x "$bin/python3" "$bin/node" "$bin/npm" "$bin/rg" "$bin/fzf" "$bin/qmd" "$bin/git"
+}
+
+setup_case() {
+  CASE_DIR="$TEST_TMP/$1"
+  STUB_BIN="$CASE_DIR/bin"
+  mkdir -p "$CASE_DIR"
+  write_stub_tools "$STUB_BIN"
+}
+
+run_with_stubs() {
+  PATH="$STUB_BIN:/usr/bin:/bin:/usr/sbin:/sbin" "$@"
+}
+
+run_install() {
+  local output="$1"
+  shift
+  run_with_stubs bash "$ROOT/install.sh" "$@" >"$output" 2>&1
+}
+
+expect_install_failure() {
+  local output="$1"
+  shift
+  if run_install "$output" "$@"; then
+    sed -n '1,220p' "$output" >&2
+    fail_assertion "expected install failure"
+  fi
+}
+
+test_help() {
+  setup_case help
+  local out="$CASE_DIR/out.txt"
+  run_install "$out" --help
+  assert_contains "$out" "Usage: bash install.sh [options] [path/to/knowledge-vault]"
+  assert_contains "$out" "--no-interactive"
+  assert_contains "$out" "--dry-run"
+}
+
+test_lib_only_mode_exits_without_bootstrap() {
+  setup_case lib-only
+  local out="$CASE_DIR/out.txt"
+
+  LLM_WIKI_INSTALL_LIB_ONLY=1 run_with_stubs bash "$ROOT/install.sh" >"$out" 2>&1
+
+  [ ! -s "$out" ] || fail_assertion "expected lib-only mode to produce no output"
+}
+
+test_refuses_generator_directory() {
+  setup_case generator-directory
+  local out="$CASE_DIR/out.txt"
+  expect_install_failure "$out" "$ROOT"
+  assert_contains "$out" "ERROR: target must not be this generator repository or one of its child paths:"
+}
+
+test_refuses_generator_child_directory() {
+  setup_case generator-child-directory
+  local out="$CASE_DIR/out.txt"
+  local target="$ROOT/.tmp-test-vault/security-child"
+  rm -rf "$target"
+  expect_install_failure "$out" "$target"
+  assert_contains "$out" "ERROR: target must not be this generator repository or one of its child paths:"
+  [ ! -e "$target" ] || fail_assertion "generator child target should not be created"
+}
+
+test_refuses_generator_lookalike() {
+  setup_case generator-lookalike
+  local out="$CASE_DIR/out.txt"
+  local target="$CASE_DIR/lookalike"
+  mkdir -p "$target/docs"
+  : >"$target/docs/llm-wiki-generation-guide.md"
+  : >"$target/docs/technical-design.md"
+  expect_install_failure "$out" "$target"
+  assert_contains "$out" "ERROR: target looks like the llm-wiki generator repository:"
+}
+
+test_rejects_old_node() {
+  setup_case old-node
+  local out="$CASE_DIR/out.txt"
+  local target="$CASE_DIR/vault"
+  if STUB_NODE_VERSION="v20.19.0" run_install "$out" "$target"; then
+    sed -n '1,220p' "$out" >&2
+    fail_assertion "expected Node.js version failure"
+  fi
+  assert_contains "$out" "ERROR: Node.js 22+ is required. Found: v20.19.0."
+}
+
+test_default_target_is_current_directory() {
+  setup_case default-target
+  local out="$CASE_DIR/out.txt"
+  local qmd_log="$CASE_DIR/qmd.log"
+  local target="$CASE_DIR/vault"
+  mkdir -p "$target"
+
+  (cd "$target" && TEST_QMD_LOG="$qmd_log" run_with_stubs bash "$ROOT/install.sh") >"$out" 2>&1
+  local canonical_target=""
+  canonical_target="$(cd "$target" && pwd -P)"
+
+  assert_file "$target/AGENTS.md"
+  assert_file "$target/.agents/skill-manifest.md"
+  assert_file "$target/.agents/skill-manifest.json"
+  assert_contains "$qmd_log" "qmd collection add $canonical_target --name knowledge-vault"
+  assert_contains "$out" "Generated llm-wiki knowledge vault at: $canonical_target"
+}
+
+test_no_interactive_uses_default_selection() {
+  setup_case no-interactive
+  local out="$CASE_DIR/out.txt"
+  local target="$CASE_DIR/vault"
+
+  run_install "$out" --no-interactive "$target"
+
+  assert_file "$target/.agents/skills/upstream/Ar9av/ar9av-skill/SKILL.md"
+  assert_file "$target/.agents/skills/upstream/kepano/kepano-skill/SKILL.md"
+  assert_contains "$target/.agents/skill-manifest.md" "| qmd | qmd 1.2.3 | installed |"
+  assert_contains "$target/.agents/skill-manifest.md" "| rg | ripgrep 14.1.0 | installed |"
+  assert_contains "$target/.agents/skill-manifest.md" "| fzf | 0.56.0 (test) | installed |"
+}
+
+test_dry_run_writes_nothing() {
+  setup_case dry-run
+  local out="$CASE_DIR/out.txt"
+  local target="$CASE_DIR/vault"
+
+  run_install "$out" --dry-run --tools rg --skills none "$target"
+
+  [ ! -e "$target" ] || fail_assertion "dry run should not create target"
+  assert_contains "$out" "Dry run: no files were written"
+  assert_contains "$out" "Tools: rg"
+  assert_contains "$out" "Upstream Skills: none"
+}
+
+test_dry_run_json_outputs_plan() {
+  setup_case dry-run-json
+  local out="$CASE_DIR/out.txt"
+  local target="$CASE_DIR/vault"
+
+  run_install "$out" --dry-run --json --tools none --skills none "$target"
+
+  assert_contains "$out" '"action": "dry-run"'
+  assert_contains "$out" '"selectedTools": []'
+  assert_contains "$out" '"selectedSkills": []'
+}
+
+test_full_install_generates_expected_layout() {
+  setup_case full-install
+  local out="$CASE_DIR/out.txt"
+  local qmd_log="$CASE_DIR/qmd.log"
+  local target="$CASE_DIR/vault"
+  TEST_QMD_LOG="$qmd_log" run_install "$out" "$target"
+  local canonical_target=""
+  canonical_target="$(cd "$target" && pwd -P)"
+
+  assert_dir "$target/inbox"
+  assert_dir "$target/raw"
+  assert_dir "$target/wiki/maps"
+  assert_dir "$target/outputs"
+  assert_dir "$target/archive"
+  assert_file "$target/AGENTS.md"
+  assert_file "$target/README.md"
+  assert_file "$target/wiki/index.md"
+  assert_file "$target/wiki/log.md"
+  assert_file "$target/.agents/skill-manifest.md"
+  assert_file "$target/.agents/skill-manifest.json"
+  assert_file "$target/.agents/skills/upstream/Ar9av/ar9av-skill/SKILL.md"
+  assert_file "$target/.agents/skills/upstream/kepano/kepano-skill/SKILL.md"
+  assert_executable "$target/.scripts/postrun.sh"
+  assert_executable "$target/.scripts/check-index-log.sh"
+  assert_not_dir "$target/tests"
+  assert_not_dir "$target/fixtures"
+  assert_not_dir "$target/examples"
+
+  assert_contains "$target/.agents/skill-manifest.md" "347e85704c52474d13470a3919e4a5cd7e3809cb"
+  assert_contains "$target/.agents/skill-manifest.md" "553ef99aa3306dd23f268e1ba9af752577684f69"
+  assert_contains "$target/.agents/skill-manifest.json" '"name": "llm-wiki-installer"'
+  assert_contains "$target/.agents/skill-manifest.json" '"pinnedCommit": "347e85704c52474d13470a3919e4a5cd7e3809cb"'
+  assert_contains "$target/.agents/skill-manifest.md" "| qmd | qmd 1.2.3 | installed |"
+  assert_contains "$qmd_log" "qmd collection add $canonical_target --name knowledge-vault"
+  assert_contains "$qmd_log" "qmd update"
+  assert_contains "$qmd_log" "qmd embed"
+  assert_contains "$out" "Generated llm-wiki knowledge vault at: $canonical_target"
+}
+
+test_existing_generated_files_are_preserved_unless_force_is_used() {
+  setup_case force-overwrite
+  local out="$CASE_DIR/out.txt"
+  local target="$CASE_DIR/vault"
+
+  run_install "$out" "$target"
+  printf 'custom readme\n' >"$target/README.md"
+
+  run_install "$out" "$target"
+  assert_contains "$target/README.md" "custom readme"
+  assert_contains "$out" "keep existing README.md"
+
+  run_install "$out" --force "$target"
+  assert_contains "$target/README.md" "# Knowledge Vault"
+  assert_not_contains "$target/README.md" "custom readme"
+}
+
+test_installs_qmd_when_missing() {
+  setup_case qmd-missing
+  local out="$CASE_DIR/out.txt"
+  local npm_log="$CASE_DIR/npm.log"
+  local qmd_log="$CASE_DIR/qmd.log"
+  local target="$CASE_DIR/vault"
+  rm -f "$STUB_BIN/qmd"
+
+  TEST_NPM_LOG="$npm_log" TEST_QMD_LOG="$qmd_log" run_install "$out" "$target"
+
+  assert_contains "$npm_log" "npm install -g @tobilu/qmd"
+  assert_contains "$qmd_log" "qmd collection add"
+  assert_contains "$out" "Generated llm-wiki knowledge vault at:"
+}
+
+test_qmd_keeps_existing_collection_bound_to_target() {
+  setup_case qmd-current
+  local out="$CASE_DIR/out.txt"
+  local qmd_log="$CASE_DIR/qmd.log"
+  local target="$CASE_DIR/vault"
+  mkdir -p "$target"
+  local canonical_target=""
+  canonical_target="$(cd "$target" && pwd -P)"
+
+  TEST_QMD_LOG="$qmd_log" QMD_COLLECTION_PATH="$canonical_target" run_install "$out" "$target"
+
+  assert_contains "$out" "qmd collection knowledge-vault already points to target"
+  assert_not_contains "$qmd_log" "qmd collection remove knowledge-vault"
+  assert_not_contains "$qmd_log" "qmd collection add $canonical_target --name knowledge-vault"
+}
+
+test_qmd_rebinds_existing_collection() {
+  setup_case qmd-rebind
+  local out="$CASE_DIR/out.txt"
+  local qmd_log="$CASE_DIR/qmd.log"
+  local target="$CASE_DIR/vault"
+
+  TEST_QMD_LOG="$qmd_log" QMD_COLLECTION_PATH="/old/vault" run_install "$out" "$target"
+  local canonical_target=""
+  canonical_target="$(cd "$target" && pwd -P)"
+
+  assert_contains "$out" "qmd collection knowledge-vault points to /old/vault; rebinding to $canonical_target"
+  assert_contains "$qmd_log" "qmd collection remove knowledge-vault"
+  assert_contains "$qmd_log" "qmd collection add $canonical_target --name knowledge-vault"
+}
+
+test_upstream_repo_without_skills_fails() {
+  setup_case upstream-empty
+  local out="$CASE_DIR/out.txt"
+  local target="$CASE_DIR/vault"
+
+  if STUB_GIT_EMPTY_REPO=1 run_install "$out" "$target"; then
+    sed -n '1,220p' "$out" >&2
+    fail_assertion "expected upstream empty repo failure"
+  fi
+  assert_contains "$out" "has no .skills/ or skills/ directory."
+}
+
+test_upstream_repo_without_skill_files_fails() {
+  setup_case upstream-no-skill
+  local out="$CASE_DIR/out.txt"
+  local target="$CASE_DIR/vault"
+
+  if STUB_GIT_NO_SKILL=1 run_install "$out" "$target"; then
+    sed -n '1,220p' "$out" >&2
+    fail_assertion "expected upstream no SKILL.md failure"
+  fi
+  assert_contains "$out" "has no discovered SKILL.md files."
+}
+
+test_generated_check_index_log_requires_index_and_log() {
+  setup_case check-index-log
+  local out="$CASE_DIR/out.txt"
+  local target="$CASE_DIR/vault"
+
+  run_install "$out" "$target"
+
+  if (cd "$target" && STUB_GIT_DIFF_NAMES="wiki/new-page.md" run_with_stubs bash .scripts/check-index-log.sh) >"$out" 2>&1; then
+    sed -n '1,220p' "$out" >&2
+    fail_assertion "expected index/log failure"
+  fi
+  assert_contains "$out" "ERROR: wiki content changed but wiki/index.md was not updated."
+
+  (
+    export STUB_GIT_DIFF_NAMES=$'wiki/new-page.md\nwiki/index.md\nwiki/log.md'
+    export STUB_GIT_LOG_DIFF=$'+- type: ingest'
+    cd "$target"
+    run_with_stubs bash .scripts/check-index-log.sh
+  ) >"$out" 2>&1
+  assert_contains "$out" "Index/log checks OK."
+}
+
+test_generated_check_index_log_requires_log_for_raw_changes() {
+  setup_case check-index-log-raw
+  local out="$CASE_DIR/out.txt"
+  local target="$CASE_DIR/vault"
+
+  run_install "$out" "$target"
+
+  if (cd "$target" && STUB_GIT_DIFF_NAMES="raw/source.md" run_with_stubs bash .scripts/check-index-log.sh) >"$out" 2>&1; then
+    sed -n '1,220p' "$out" >&2
+    fail_assertion "expected raw/log failure"
+  fi
+  assert_contains "$out" "ERROR: raw/ changed but wiki/log.md was not updated."
+}
+
+test_generated_check_index_log_rejects_bad_generated_names() {
+  setup_case check-index-log-names
+  local out="$CASE_DIR/out.txt"
+  local target="$CASE_DIR/vault"
+
+  run_install "$out" "$target"
+
+  if (cd "$target" && STUB_GIT_DIFF_NAMES="outputs/New Note.md" run_with_stubs bash .scripts/check-index-log.sh) >"$out" 2>&1; then
+    sed -n '1,220p' "$out" >&2
+    fail_assertion "expected bad generated filename failure"
+  fi
+  assert_contains "$out" "ERROR: Generated wiki/output/script/config-description filenames must use lowercase kebab-case."
+}
+
+test_generated_postrun_rejects_unauthorized_skill_file() {
+  setup_case postrun-skill
+  local out="$CASE_DIR/out.txt"
+  local target="$CASE_DIR/vault"
+
+  run_install "$out" "$target"
+  printf '# Local Skill\n' >"$target/SKILL.md"
+
+  if (cd "$target" && run_with_stubs bash .scripts/postrun.sh) >"$out" 2>&1; then
+    sed -n '1,220p' "$out" >&2
+    fail_assertion "expected unauthorized SKILL.md failure"
+  fi
+  assert_contains "$out" "ERROR: Unauthorized SKILL.md found outside .agents/skills/upstream/<repo>/<skill-name>/."
+}
+
+test_generated_postrun_rejects_forbidden_runtime_directories() {
+  setup_case postrun-forbidden-dir
+  local out="$CASE_DIR/out.txt"
+  local target="$CASE_DIR/vault"
+
+  run_install "$out" "$target"
+  mkdir -p "$target/.codex/rules"
+
+  if (cd "$target" && run_with_stubs bash .scripts/postrun.sh) >"$out" 2>&1; then
+    sed -n '1,220p' "$out" >&2
+    fail_assertion "expected forbidden directory failure"
+  fi
+  assert_contains "$out" "ERROR: .codex/rules/ must not exist."
+}
+
+test_generated_postrun_requires_raw_authorization() {
+  setup_case postrun-raw
+  local out="$CASE_DIR/out.txt"
+  local target="$CASE_DIR/vault"
+
+  run_install "$out" "$target"
+
+  if (cd "$target" && STUB_GIT_DIFF_NAMES="raw/source.md" run_with_stubs bash .scripts/postrun.sh) >"$out" 2>&1; then
+    sed -n '1,220p' "$out" >&2
+    fail_assertion "expected raw authorization failure"
+  fi
+  assert_contains "$out" "ERROR: raw/ changed. Set ALLOW_RAW_CHANGE=1 only when the user explicitly authorized this raw change."
+
+  (
+    export ALLOW_RAW_CHANGE=1
+    export STUB_GIT_DIFF_NAMES=$'raw/source.md\nwiki/log.md'
+    cd "$target"
+    run_with_stubs bash .scripts/postrun.sh
+  ) >"$out" 2>&1
+  assert_contains "$out" "Post-run OK. Review diff before commit."
+}
+
+run_test() {
+  local name="$1"
+  echo "== $name =="
+  if (set -e; "$name"); then
+    PASS_COUNT=$((PASS_COUNT + 1))
+    echo "ok $name"
+  else
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+    echo "not ok $name" >&2
+  fi
+}
+
+main() {
+  run_test test_help
+  run_test test_lib_only_mode_exits_without_bootstrap
+  run_test test_refuses_generator_directory
+  run_test test_refuses_generator_child_directory
+  run_test test_refuses_generator_lookalike
+  run_test test_rejects_old_node
+  run_test test_default_target_is_current_directory
+  run_test test_no_interactive_uses_default_selection
+  run_test test_dry_run_writes_nothing
+  run_test test_dry_run_json_outputs_plan
+  run_test test_full_install_generates_expected_layout
+  run_test test_existing_generated_files_are_preserved_unless_force_is_used
+  run_test test_installs_qmd_when_missing
+  run_test test_qmd_keeps_existing_collection_bound_to_target
+  run_test test_qmd_rebinds_existing_collection
+  run_test test_upstream_repo_without_skills_fails
+  run_test test_upstream_repo_without_skill_files_fails
+  run_test test_generated_check_index_log_requires_index_and_log
+  run_test test_generated_check_index_log_requires_log_for_raw_changes
+  run_test test_generated_check_index_log_rejects_bad_generated_names
+  run_test test_generated_postrun_rejects_unauthorized_skill_file
+  run_test test_generated_postrun_rejects_forbidden_runtime_directories
+  run_test test_generated_postrun_requires_raw_authorization
+
+  echo
+  echo "Passed: $PASS_COUNT"
+  echo "Failed: $FAIL_COUNT"
+
+  [ "$FAIL_COUNT" -eq 0 ]
+}
+
+main "$@"

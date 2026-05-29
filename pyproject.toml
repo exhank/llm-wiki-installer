@@ -1,0 +1,111 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm-wiki-installer"
+dynamic = ["version"]
+description = "Installer for LLM-native Obsidian Markdown knowledge vaults."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "llm-wiki contributors" }]
+maintainers = [{ name = "llm-wiki-installer maintainers" }]
+keywords = [
+  "agent",
+  "llm",
+  "markdown",
+  "obsidian",
+  "knowledge-base",
+  "installer",
+  "wiki",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Operating System :: MacOS",
+  "Operating System :: POSIX",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+  "Topic :: Software Development :: Build Tools",
+  "Topic :: Text Processing :: Markup :: Markdown",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/exhank/llm-wiki-installer"
+Repository = "https://github.com/exhank/llm-wiki-installer"
+Issues = "https://github.com/exhank/llm-wiki-installer/issues"
+Documentation = "https://github.com/exhank/llm-wiki-installer/tree/main/docs"
+Changelog = "https://github.com/exhank/llm-wiki-installer/blob/main/CHANGELOG.md"
+Security = "https://github.com/exhank/llm-wiki-installer/security/policy"
+
+[project.scripts]
+llm-wiki-install = "llm_wiki_installer.cli:main"
+llm-wiki-installer = "llm_wiki_installer.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+llm_wiki_installer = ["py.typed", "templates/*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "llm_wiki_installer.__version__" }
+
+[tool.pytest.ini_options]
+addopts = [
+  "--strict-config",
+  "--strict-markers",
+  "-ra",
+]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.black]
+target-version = ["py313"]
+
+[tool.isort]
+profile = "black"
+src_paths = ["src", "tests"]
+
+[tool.mypy]
+python_version = "3.13"
+files = ["src", "tests"]
+mypy_path = "src"
+strict = true
+show_error_codes = true
+warn_unreachable = true
+
+[tool.pylint.main]
+persistent = false
+py-version = "3.13"
+recursive = true
+source-roots = ["src"]
+
+[tool.pylint.messages_control]
+disable = [
+  "missing-class-docstring",
+  "missing-function-docstring",
+  "missing-module-docstring",
+  "protected-access",
+  "redefined-outer-name",
+  "too-few-public-methods",
+]
+
+[tool.pylint.design]
+max-args = 6
+max-positional-arguments = 6
+
+[tool.coverage.run]
+branch = true
+source = ["llm_wiki_installer"]
+
+[tool.coverage.report]
+fail_under = 95
+show_missing = true
+skip_covered = true

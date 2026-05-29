@@ -1,0 +1,35 @@
+.DS_Store
+Thumbs.db
+
+# Obsidian volatile workspace
+.obsidian/workspace.json
+.obsidian/workspaces.json
+.obsidian/workspace*.json
+.obsidian/cache
+.obsidian/plugins/
+
+# Node / Python
+node_modules/
+.venv/
+.cache/
+dist/
+tmp/
+
+# Temporary setup tests
+.tmp-setup-tests/
+.tmp-test-vault/
+
+# Derived indexes
+.index/
+.vector/
+.faiss/
+.qmd/
+
+# Secrets
+.env
+.env.*
+*.key
+*.pem
+id_rsa
+id_ed25519
+.codex/auth.json

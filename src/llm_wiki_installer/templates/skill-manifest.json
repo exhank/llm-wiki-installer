@@ -1,0 +1,71 @@
+{
+  "generated": {{TODAY_JSON}},
+  "installer": {
+    "name": {{INSTALLER_NAME_JSON}},
+    "version": {{INSTALLER_VERSION_JSON}},
+    "role": "setup wrapper / generator suite",
+    "runtimeCoordinator": "AGENTS.md",
+    "projectOwnedSkill": false
+  },
+  "target": {{TARGET_JSON}},
+  "qmd": {
+    "source": "https://github.com/tobi/qmd",
+    "package": "@tobilu/qmd",
+    "installCommand": "npm install -g @tobilu/qmd",
+    "result": {{QMD_RESULT_JSON}},
+    "version": {{QMD_VERSION_JSON}},
+    "nodeVersion": {{NODE_VERSION_JSON}},
+    "npmVersion": {{NPM_VERSION_JSON}},
+    "collection": "knowledge-vault",
+    "collectionPath": {{TARGET_JSON}},
+    "indexedScope": "repository root"
+  },
+  "tools": {
+    "qmd": {
+      "version": {{QMD_VERSION_JSON}},
+      "result": {{QMD_RESULT_JSON}}
+    },
+    "rg": {
+      "version": {{RG_VERSION_JSON}},
+      "result": {{RG_RESULT_JSON}}
+    },
+    "fzf": {
+      "version": {{FZF_VERSION_JSON}},
+      "result": {{FZF_RESULT_JSON}}
+    }
+  },
+  "upstreamSkills": [
+    {
+      "repo": "https://github.com/Ar9av/obsidian-wiki",
+      "sourceType": "third-party upstream artifact",
+      "pinnedCommit": {{AR9AV_PINNED_COMMIT_JSON}},
+      "resolvedCommit": {{AR9AV_COMMIT_JSON}},
+      "licenseReview": "review upstream repository at pinned commit",
+      "installDate": {{TODAY_JSON}},
+      "installedSkills": {{AR9AV_COUNT}},
+      "result": {{AR9AV_RESULT_JSON}}
+    },
+    {
+      "repo": "https://github.com/kepano/obsidian-skills",
+      "sourceType": "third-party upstream artifact",
+      "pinnedCommit": {{KEPANO_PINNED_COMMIT_JSON}},
+      "resolvedCommit": {{KEPANO_COMMIT_JSON}},
+      "licenseReview": "review upstream repository at pinned commit",
+      "installDate": {{TODAY_JSON}},
+      "installedSkills": {{KEPANO_COUNT}},
+      "result": {{KEPANO_RESULT_JSON}}
+    }
+  ],
+  "generatedFiles": [
+    "AGENTS.md",
+    "README.md",
+    "wiki/index.md",
+    "wiki/log.md",
+    ".scripts/postrun.sh",
+    ".scripts/check-index-log.sh",
+    ".codex/config.toml",
+    ".agents/skill-manifest.md",
+    ".agents/skill-manifest.json",
+    ".gitignore"
+  ]
+}
