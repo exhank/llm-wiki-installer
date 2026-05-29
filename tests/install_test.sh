@@ -212,6 +212,10 @@ if [ "${1:-}" = "-C" ]; then
   shift 2
 fi
 
+while [ "${1:-}" = "-c" ]; do
+  shift 2
+done
+
 cmd="${1:-}"
 case "$cmd" in
   clone)
@@ -241,8 +245,26 @@ case "$cmd" in
         ;;
     esac
     ;;
+  remote)
+    ;;
+  fetch)
+    if [ -n "${TEST_GIT_BOOTSTRAP_LOG:-}" ]; then
+      echo "git -C $repo_dir fetch ${*:2}" >>"$TEST_GIT_BOOTSTRAP_LOG"
+    fi
+    ;;
+  checkout)
+    if [ -n "${TEST_GIT_BOOTSTRAP_SOURCE:-}" ]; then
+      cp "$TEST_GIT_BOOTSTRAP_SOURCE/install.sh" "$repo_dir/install.sh"
+      mkdir -p "$repo_dir/src" "$repo_dir/tests"
+      cp -R "$TEST_GIT_BOOTSTRAP_SOURCE/src/." "$repo_dir/src/"
+    fi
+    ;;
   init)
-    mkdir -p "${repo_dir:-.}/.git"
+    target="."
+    if [ "$#" -gt 1 ]; then
+      target="${@: -1}"
+    fi
+    mkdir -p "$target/.git"
     ;;
   rev-parse)
     case "$repo_dir" in
@@ -316,6 +338,25 @@ test_lib_only_mode_exits_without_bootstrap() {
   LLM_WIKI_INSTALL_LIB_ONLY=1 run_with_stubs bash "$ROOT/install.sh" >"$out" 2>&1
 
   [ ! -s "$out" ] || fail_assertion "expected lib-only mode to produce no output"
+}
+
+test_streamed_bootstrap_is_quiet_for_json_output() {
+  setup_case streamed-bootstrap-json
+  local out="$CASE_DIR/out.txt"
+  local launcher_dir="$CASE_DIR/launcher"
+  local target="$CASE_DIR/vault"
+  mkdir -p "$launcher_dir"
+  cp "$ROOT/install.sh" "$launcher_dir/install.sh"
+
+  TEST_GIT_BOOTSTRAP_SOURCE="$ROOT" \
+    LLM_WIKI_INSTALLER_REPO_URL="https://example.invalid/llm-wiki-installer" \
+    LLM_WIKI_INSTALLER_REF="v0.1.0" \
+    run_with_stubs bash "$launcher_dir/install.sh" --dry-run --json --tools none --skills none "$target" >"$out" 2>&1
+
+  assert_contains "$out" '"action": "dry-run"'
+  assert_not_contains "$out" "Cloning into"
+  assert_not_contains "$out" "is not a commit"
+  assert_not_contains "$out" "detached HEAD"
 }
 
 test_refuses_generator_directory() {
@@ -657,6 +698,7 @@ run_test() {
 main() {
   run_test test_help
   run_test test_lib_only_mode_exits_without_bootstrap
+  run_test test_streamed_bootstrap_is_quiet_for_json_output
   run_test test_refuses_generator_directory
   run_test test_refuses_generator_child_directory
   run_test test_refuses_generator_lookalike

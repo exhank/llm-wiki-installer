@@ -79,8 +79,14 @@ cleanup() {
 }
 trap cleanup EXIT
 
-git clone --depth 1 --branch "$REPO_REF" -- "$REPO_URL" "$CLONE_DIR" >/dev/null ||
-  fail "failed to clone llm-wiki-installer from $REPO_URL at ref $REPO_REF."
+git init -q "$CLONE_DIR" ||
+  fail "failed to initialize temporary llm-wiki-installer checkout."
+git -C "$CLONE_DIR" remote add origin "$REPO_URL" ||
+  fail "failed to configure llm-wiki-installer remote: $REPO_URL."
+git -C "$CLONE_DIR" fetch -q --depth 1 origin "$REPO_REF" ||
+  fail "failed to fetch llm-wiki-installer from $REPO_URL at ref $REPO_REF."
+git -C "$CLONE_DIR" -c advice.detachedHead=false checkout -q --detach 'FETCH_HEAD^{}' ||
+  fail "failed to check out llm-wiki-installer ref $REPO_REF."
 
 [ -f "$CLONE_DIR/install.sh" ] ||
   fail "cloned llm-wiki-installer is missing install.sh."
