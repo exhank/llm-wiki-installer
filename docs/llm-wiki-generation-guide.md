@@ -787,32 +787,26 @@ echo "Index/log checks OK."
 
 ## 10. `.gitignore` Generation Template
 
-```gitignore
-.DS_Store
-Thumbs.db
+Generate `.gitignore` from `src/llm_wiki_installer/templates/gitignore`.
 
-# Obsidian volatile workspace
+The template must keep llm-wiki/Obsidian-specific rules first:
+
+```gitignore
+# llm-wiki / Obsidian
 .obsidian/workspace.json
 .obsidian/workspaces.json
 .obsidian/workspace*.json
 .obsidian/cache
 
-# Node / Python
-node_modules/
-.venv/
-.cache/
-dist/
-tmp/
-
-# Temporary setup tests
+# llm-wiki generated caches and local setup test outputs
 .tmp-setup-tests/
 .tmp-test-vault/
-
-# Derived indexes
 .index/
 .vector/
 .faiss/
-# Secrets
+tmp/
+
+# Local secrets
 .env
 .env.*
 *.key
@@ -821,6 +815,19 @@ id_rsa
 id_ed25519
 .codex/auth.json
 ```
+
+Then append the official GitHub `.gitignore` templates for:
+
+- `Python.gitignore`
+- `Node.gitignore`
+- `Global/macOS.gitignore`
+- `Global/Windows.gitignore`
+- `Global/Linux.gitignore`
+
+Each appended official section must include a source comment pointing at the
+corresponding `github/gitignore` file. If switching to a Forgejo-maintained
+official template source later, update this section, the packaged template, and
+template tests together.
 
 ---
 

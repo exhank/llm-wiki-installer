@@ -17,6 +17,9 @@ when the package version in `src/llm_wiki_installer/__init__.py` changes.
   creating an unused `.codex/hooks/` directory.
 - Generate `wiki/log.jsonl` as the append-only audit ledger instead of
   `wiki/log.md`.
+- Expand the generated `.gitignore` with Obsidian and llm-wiki rules plus
+  concatenated official GitHub Python, Node, macOS, Windows, and Linux
+  templates.
 
 ## 0.1.5 - 2026-05-29
 
