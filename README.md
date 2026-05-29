@@ -23,7 +23,7 @@ generated vault lives in a separate target repository.
 From the empty directory you want to turn into an `llm-wiki` vault, run:
 
 ```bash
-/bin/bash -c "$(curl -fsSL "https://raw.githubusercontent.com/exhank/llm-wiki-installer/$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/exhank/llm-wiki-installer/releases/latest | sed 's#.*/tag/##')/install.sh")"
+curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/main/install.sh | /bin/bash
 ```
 
 The default flow is interactive. It shows selectors for dependency tools and

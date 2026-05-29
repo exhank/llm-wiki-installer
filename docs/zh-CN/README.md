@@ -12,7 +12,7 @@ Markdown 知识库仓库。生成后的 vault 使用 Git 审核变更，用 `raw
 进入你想作为 vault 根目录的空目录，然后运行一行安装命令：
 
 ```bash
-/bin/bash -c "$(curl -fsSL "https://raw.githubusercontent.com/exhank/llm-wiki-installer/$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/exhank/llm-wiki-installer/releases/latest | sed 's#.*/tag/##')/install.sh")"
+curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/main/install.sh | /bin/bash
 ```
 
 默认流程是交互式的。安装器会显示依赖工具和上游 Skills 的选择器，并默认全

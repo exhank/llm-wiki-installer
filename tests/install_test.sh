@@ -419,7 +419,7 @@ test_readme_one_line_curl_install_command() {
     TEST_GIT_BOOTSTRAP_LOG="$git_log" \
     TEST_QMD_LOG="$qmd_log" \
     run_with_stubs /bin/bash -c \
-      '/bin/bash -c "$(curl -fsSL "https://raw.githubusercontent.com/exhank/llm-wiki-installer/$(curl -fsSLI -o /dev/null -w '\''%{url_effective}'\'' https://github.com/exhank/llm-wiki-installer/releases/latest | sed '\''s#.*/tag/##'\'')/install.sh")" -- --no-interactive "$1"' \
+      'curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/main/install.sh | /bin/bash -s -- --no-interactive "$1"' \
       _ "$target" >"$out" 2>&1
 
   local canonical_target=""
@@ -429,7 +429,7 @@ test_readme_one_line_curl_install_command() {
   assert_file "$target/.agents/skill-manifest.json"
   assert_file "$target/.agents/skills/upstream/Ar9av/ar9av-skill/SKILL.md"
   assert_file "$target/.agents/skills/upstream/kepano/kepano-skill/SKILL.md"
-  assert_contains "$curl_log" "raw.githubusercontent.com/exhank/llm-wiki-installer/v9.8.7/install.sh"
+  assert_contains "$curl_log" "raw.githubusercontent.com/exhank/llm-wiki-installer/main/install.sh"
   assert_contains "$git_log" "fetch -q --depth 1 origin v9.8.7"
   assert_contains "$qmd_log" "qmd collection add $canonical_target --name knowledge-vault"
   assert_contains "$target/.scripts/postrun.sh" "git --no-pager diff --stat"
