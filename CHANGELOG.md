@@ -10,6 +10,12 @@ when the package version in `src/llm_wiki_installer/__init__.py` changes.
 - Switch the README PyPI badge to a release-specific shields dynamic JSON
   badge so it renders the just-published package version instead of waiting on
   shields' PyPI endpoint cache.
+- Generate stable Obsidian configuration, the Things theme, and pinned
+  obsidian-git plugin assets while continuing to exclude volatile workspace
+  state.
+- Use macOS/VSCode-style generated Obsidian hotkeys for quick open, command
+  palette, search, file creation, tab management, splits, Markdown formatting,
+  headings, sidebars, navigation, and Git pull.
 
 ## 0.1.4 - 2026-05-29
 

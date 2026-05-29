@@ -56,6 +56,27 @@
       "result": {{KEPANO_RESULT_JSON}}
     }
   ],
+  "obsidianAssets": {
+    "theme": {
+      "name": "Things",
+      "sourceType": "bundled Obsidian theme template",
+      "version": "2.2.3",
+      "result": "installed"
+    },
+    "plugins": [
+      {
+        "id": "obsidian-git",
+        "name": "Git",
+        "sourceType": "bundled Obsidian community plugin template",
+        "version": "2.38.3",
+        "result": "installed"
+      }
+    ],
+    "excludedVolatileFiles": [
+      ".obsidian/workspace.json",
+      ".obsidian/workspaces.json"
+    ]
+  },
   "generatedFiles": [
     "AGENTS.md",
     "README.md",
@@ -63,6 +84,20 @@
     "wiki/log.md",
     ".scripts/postrun.sh",
     ".scripts/check-index-log.sh",
+    ".obsidian/app.json",
+    ".obsidian/appearance.json",
+    ".obsidian/backlink.json",
+    ".obsidian/community-plugins.json",
+    ".obsidian/core-plugins.json",
+    ".obsidian/graph.json",
+    ".obsidian/hotkeys.json",
+    ".obsidian/plugins/obsidian-git/data.json",
+    ".obsidian/plugins/obsidian-git/main.js",
+    ".obsidian/plugins/obsidian-git/manifest.json",
+    ".obsidian/plugins/obsidian-git/obsidian_askpass.sh",
+    ".obsidian/plugins/obsidian-git/styles.css",
+    ".obsidian/themes/Things/manifest.json",
+    ".obsidian/themes/Things/theme.css",
     ".codex/config.toml",
     ".agents/skill-manifest.md",
     ".agents/skill-manifest.json",

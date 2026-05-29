@@ -20,6 +20,8 @@ REQUIRED_DIRECTORIES = (
     ".agents/skills/upstream",
     ".codex/hooks",
     ".scripts",
+    ".obsidian/plugins/obsidian-git",
+    ".obsidian/themes/Things",
 )
 
 GENERATED_FILES = (
@@ -32,12 +34,45 @@ GENERATED_FILES = (
     (".codex/config.toml", "codex-config.toml"),
     (".scripts/postrun.sh", "postrun.sh"),
     (".scripts/check-index-log.sh", "check-index-log.sh"),
+    (".obsidian/app.json", "obsidian/app.json"),
+    (".obsidian/appearance.json", "obsidian/appearance.json"),
+    (".obsidian/backlink.json", "obsidian/backlink.json"),
+    (".obsidian/community-plugins.json", "obsidian/community-plugins.json"),
+    (".obsidian/core-plugins.json", "obsidian/core-plugins.json"),
+    (".obsidian/graph.json", "obsidian/graph.json"),
+    (".obsidian/hotkeys.json", "obsidian/hotkeys.json"),
+    (
+        ".obsidian/plugins/obsidian-git/data.json",
+        "obsidian/plugins/obsidian-git/data.json",
+    ),
+    (
+        ".obsidian/plugins/obsidian-git/main.js",
+        "obsidian/plugins/obsidian-git/main.js",
+    ),
+    (
+        ".obsidian/plugins/obsidian-git/manifest.json",
+        "obsidian/plugins/obsidian-git/manifest.json",
+    ),
+    (
+        ".obsidian/plugins/obsidian-git/obsidian_askpass.sh",
+        "obsidian/plugins/obsidian-git/obsidian_askpass.sh",
+    ),
+    (
+        ".obsidian/plugins/obsidian-git/styles.css",
+        "obsidian/plugins/obsidian-git/styles.css",
+    ),
+    (
+        ".obsidian/themes/Things/manifest.json",
+        "obsidian/themes/Things/manifest.json",
+    ),
+    (".obsidian/themes/Things/theme.css", "obsidian/themes/Things/theme.css"),
     (".gitignore", "gitignore"),
 )
 
 EXECUTABLE_FILES = (
     ".scripts/postrun.sh",
     ".scripts/check-index-log.sh",
+    ".obsidian/plugins/obsidian-git/obsidian_askpass.sh",
 )
 
 

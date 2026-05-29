@@ -26,6 +26,7 @@ AGENTS.md = repository-level canonical agent policy
 .agents/  = project-local selected skills and skill manifest
 .codex/   = Codex adapter / hooks; does not carry long-term rules
 .scripts/ = fixed project scripts
+.obsidian/ = stable Obsidian settings, pinned plugin assets, and theme files
 ```
 
 Core principle:
@@ -150,6 +151,7 @@ examples/
 | `.agents/skill-manifest.json` | machine-readable mirror of installer, tool, upstream pin, and generated artifact state | maintained by setup | updated on every setup/update |
 | `.codex/hooks/` | LLM hook triggers | maintained by adapter | does not carry long-term rules |
 | `.scripts/` | general project scripts | maintained by setup | reviewable and testable |
+| `.obsidian/` | stable Obsidian settings, pinned community plugin assets, and theme files | maintained by setup | workspace state remains ignored |
 
 Before adding a new top-level directory, all conditions must hold:
 
@@ -479,9 +481,10 @@ Agents may append wiki/log.md.
 Agents may write outputs/ within a clear task.
 Agents may write archive/ within a clear archive task.
 Agents may maintain .agents/skill-manifest.md, .scripts/, .codex/hooks/, and .codex/config.toml.
+Agents may maintain generated .obsidian settings and pinned asset templates when the generator contract changes.
 Agents may not write raw/ by default.
 Agents may not create .codex/rules/.
-Agents may not create Obsidian plugin directories.
+Agents may not create ad hoc Obsidian plugin directories outside generated, pinned assets.
 ```
 
 Deletion boundaries:
@@ -538,12 +541,12 @@ Tool positioning:
 Do not install, require, or include in this design:
 
 ```text
-Obsidian plugins
 Dataview
 Omnisearch
-Bases
-Canvas
-.obsidian/plugins/
+Obsidian Bases automation
+Canvas automation
+.obsidian/workspace.json
+.obsidian/workspaces.json
 ```
 
 ---
@@ -708,7 +711,7 @@ Main risks:
 | outputs polluting wiki | reports become truth source in reverse | outputs->inbox->wiki |
 | Skill fork | hand-written replacement for upstream Skill | reuse open-source Skills as-is; generate only the setup wrapper, AGENTS policy, and scripts |
 | adapter becomes truth source | different agents have inconsistent rules | AGENTS.md is canonical |
-| plugin lock-in | relying on Obsidian plugins | do not install plugins; prefer GFM |
+| plugin lock-in | relying on Obsidian plugins as the knowledge format | generate pinned assets; keep knowledge GFM-compatible |
 | unreviewable setup drift | different files generated without version evidence | manifest, fixed templates, resolved upstream commits, fixed diff |
 
 Antipatterns:
@@ -725,5 +728,5 @@ creating top-level PARA directories
 enabling upstream Skills as runtime policy without AGENTS.md precedence
 hand-writing a local Skill substitute to replace upstream Skills
 keeping test fixtures that pollute the initial repository
-installing Obsidian plugins as architectural dependencies
+making Obsidian plugins architectural dependencies for knowledge meaning
 ```

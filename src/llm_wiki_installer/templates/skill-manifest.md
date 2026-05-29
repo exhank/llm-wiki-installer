@@ -38,6 +38,13 @@ Generated: {{TODAY}}
 | <https://github.com/Ar9av/obsidian-wiki> | third-party upstream artifact | {{AR9AV_PINNED_COMMIT}} | {{AR9AV_COMMIT}} | review upstream repository at pinned commit | {{TODAY}} | {{AR9AV_COUNT}} | {{AR9AV_RESULT}} |
 | <https://github.com/kepano/obsidian-skills> | third-party upstream artifact | {{KEPANO_PINNED_COMMIT}} | {{KEPANO_COMMIT}} | review upstream repository at pinned commit | {{TODAY}} | {{KEPANO_COUNT}} | {{KEPANO_RESULT}} |
 
+## Obsidian Assets
+
+| Asset | Source Type | Version | Result |
+| --- | --- | --- | --- |
+| Things theme | bundled Obsidian theme template | 2.2.3 | installed |
+| obsidian-git plugin | bundled Obsidian community plugin template | 2.38.3 | installed |
+
 ## llm-wiki Installer
 
 | Field | Value |
@@ -56,6 +63,20 @@ Generated: {{TODAY}}
 - wiki/log.md
 - .scripts/postrun.sh
 - .scripts/check-index-log.sh
+- .obsidian/app.json
+- .obsidian/appearance.json
+- .obsidian/backlink.json
+- .obsidian/community-plugins.json
+- .obsidian/core-plugins.json
+- .obsidian/graph.json
+- .obsidian/hotkeys.json
+- .obsidian/plugins/obsidian-git/data.json
+- .obsidian/plugins/obsidian-git/main.js
+- .obsidian/plugins/obsidian-git/manifest.json
+- .obsidian/plugins/obsidian-git/obsidian_askpass.sh
+- .obsidian/plugins/obsidian-git/styles.css
+- .obsidian/themes/Things/manifest.json
+- .obsidian/themes/Things/theme.css
 - .codex/config.toml
 - .agents/skill-manifest.md
 - .agents/skill-manifest.json

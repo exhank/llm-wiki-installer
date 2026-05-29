@@ -1,0 +1,12 @@
+{
+  "showInlineTitle": false,
+  "showIndentGuide": false,
+  "attachmentFolderPath": "./attachments",
+  "useMarkdownLinks": true,
+  "useTab": false,
+  "alwaysUpdateLinks": true,
+  "newLinkFormat": "relative",
+  "trashOption": "local",
+  "promptDelete": false,
+  "mobilePullAction": "obsidian-git:pull"
+}

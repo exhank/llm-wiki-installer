@@ -6,7 +6,6 @@ Thumbs.db
 .obsidian/workspaces.json
 .obsidian/workspace*.json
 .obsidian/cache
-.obsidian/plugins/
 
 # Node / Python
 node_modules/

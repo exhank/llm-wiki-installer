@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import runpy
 import subprocess
 import sys
@@ -643,7 +644,9 @@ def test_all_generated_templates_render_without_unresolved_tokens(
     template_name: str,
     template_context: dict[str, str],
 ) -> None:
-    assert "{{" not in render_template(template_name, template_context)
+    rendered = render_template(template_name, template_context)
+
+    assert not re.findall(r"{{[A-Z0-9_]+}}", rendered)
 
 
 def test_write_generated_files_preserves_existing_files_without_force(
@@ -657,6 +660,10 @@ def test_write_generated_files_preserves_existing_files_without_force(
 
     assert readme.read_text(encoding="utf-8") == "custom readme\n"
     assert (tmp_path / "AGENTS.md").is_file()
+    assert (tmp_path / ".obsidian/app.json").is_file()
+    assert (tmp_path / ".obsidian/plugins/obsidian-git/main.js").is_file()
+    assert not (tmp_path / ".obsidian/workspace.json").exists()
+    assert not (tmp_path / ".obsidian/workspaces.json").exists()
 
 
 def test_write_generated_files_overwrites_existing_files_with_force(
@@ -680,6 +687,49 @@ def test_write_generated_files_marks_scripts_executable(
     write_generated_files(tmp_path, template_context, force=True)
 
     assert (tmp_path / relative_path).stat().st_mode & 0o111
+
+
+def test_generated_obsidian_plugin_and_theme_assets(
+    tmp_path: Path,
+    template_context: dict[str, str],
+) -> None:
+    write_generated_files(tmp_path, template_context, force=True)
+
+    assert json.loads(
+        (tmp_path / ".obsidian/community-plugins.json").read_text(encoding="utf-8")
+    ) == ["obsidian-git"]
+    assert '"id": "obsidian-git"' in (
+        tmp_path / ".obsidian/plugins/obsidian-git/manifest.json"
+    ).read_text(encoding="utf-8")
+    assert '"name": "Things"' in (
+        tmp_path / ".obsidian/themes/Things/manifest.json"
+    ).read_text(encoding="utf-8")
+    hotkeys = json.loads(
+        (tmp_path / ".obsidian/hotkeys.json").read_text(encoding="utf-8")
+    )
+    assert hotkeys["switcher:open"] == [{"modifiers": ["Mod"], "key": "P"}]
+    assert hotkeys["command-palette:open"] == [
+        {"modifiers": ["Mod", "Shift"], "key": "P"}
+    ]
+    assert hotkeys["global-search:open"] == [
+        {"modifiers": ["Mod", "Shift"], "key": "F"}
+    ]
+    assert hotkeys["file-explorer:new-file"] == [{"modifiers": ["Mod"], "key": "N"}]
+    assert hotkeys["workspace:close"] == [{"modifiers": ["Mod"], "key": "W"}]
+    assert hotkeys["workspace:undo-close-pane"] == [
+        {"modifiers": ["Mod", "Shift"], "key": "T"}
+    ]
+    assert hotkeys["workspace:split-vertical"] == [{"modifiers": ["Mod"], "key": "\\"}]
+    assert hotkeys["editor:open-search"] == [{"modifiers": ["Mod"], "key": "F"}]
+    assert hotkeys["editor:open-search-replace"] == [
+        {"modifiers": ["Mod", "Alt"], "key": "F"}
+    ]
+    assert hotkeys["editor:toggle-comment"] == [{"modifiers": ["Mod"], "key": "/"}]
+    assert hotkeys["editor:set-heading-1"] == [
+        {"modifiers": ["Mod", "Alt"], "key": "1"}
+    ]
+    assert hotkeys["app:toggle-left-sidebar"] == [{"modifiers": ["Mod"], "key": "0"}]
+    assert hotkeys["obsidian-git:pull"] == [{"modifiers": ["Mod", "Shift"], "key": "G"}]
 
 
 def test_write_file_creates_parent_directories(
@@ -1065,6 +1115,7 @@ def test_generated_review_commands_disable_git_pager(
     agents = render_template("AGENTS.md", template_context)
 
     assert "git --no-pager diff --stat || true" in postrun
+    assert "Required Obsidian plugin asset missing" in postrun
     assert "git --no-pager diff --stat" in readme
     assert "git --no-pager diff" in readme
     assert "git --no-pager diff --stat" in agents

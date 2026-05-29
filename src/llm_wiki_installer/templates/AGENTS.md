@@ -25,13 +25,13 @@ The goal is to maintain a durable Markdown wiki compiled from user-approved raw 
 - `.agents/skill-manifest.md` and `.agents/skill-manifest.json` record installed skills and tool versions.
 - `.codex/hooks/` contains LLM hooks.
 - `.scripts/` contains fixed project scripts.
+- `.obsidian/` contains stable Obsidian settings, pinned community plugin assets, and the Things theme.
 
 ## Forbidden paths
 
 Do not create:
 
 - `.codex/rules/`
-- `.obsidian/plugins/`
 - `projects/`
 - `areas/`
 - `resources/`

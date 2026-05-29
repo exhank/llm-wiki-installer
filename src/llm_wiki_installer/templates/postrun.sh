@@ -18,13 +18,21 @@ if [ -d ".codex/rules" ]; then
   fail ".codex/rules/ must not exist."
 fi
 
-if [ -d ".obsidian/plugins" ]; then
-  fail ".obsidian/plugins/ must not exist."
-fi
-
-if git status --porcelain=v1 -- .codex/rules .obsidian/plugins | grep -q .; then
+if git status --porcelain=v1 -- .codex/rules | grep -q .; then
   fail "Forbidden paths are present in git status."
 fi
+
+for plugin_asset in \
+  .obsidian/plugins/obsidian-git/main.js \
+  .obsidian/plugins/obsidian-git/manifest.json \
+  .obsidian/plugins/obsidian-git/styles.css \
+  .obsidian/plugins/obsidian-git/data.json \
+  .obsidian/plugins/obsidian-git/obsidian_askpass.sh
+do
+  if [ ! -f "$plugin_asset" ]; then
+    fail "Required Obsidian plugin asset missing: $plugin_asset"
+  fi
+done
 
 unauthorized_skill_paths="$(
   find . \

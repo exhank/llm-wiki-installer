@@ -63,6 +63,8 @@ project sets up a stricter vault contract:
 - Optional qmd collection setup with Node.js 22+ validation.
 - Generated AGENTS policy, README, scripts, Codex config, index, log, and
   Markdown plus JSON manifests.
+- Generated stable Obsidian settings with bundled Things theme and obsidian-git
+  plugin assets.
 - Pinned upstream Skill commits for reproducible generated vaults.
 - Safety checks that refuse to generate into this generator repository.
 - Unit, shell integration, type, lint, coverage, and package checks.
@@ -89,6 +91,7 @@ knowledge-vault/
 |   +-- skills/upstream/ # pinned third-party Skill artifacts
 +-- .codex/config.toml
 +-- .scripts/            # verification helpers
++-- .obsidian/           # stable Obsidian settings, theme, and pinned plugin assets
 ```
 
 The operating model is intentionally file-first:
@@ -223,13 +226,16 @@ README.md
 .codex/hooks/
 .scripts/postrun.sh
 .scripts/check-index-log.sh
+.obsidian/
 .gitignore
 ```
 
 Selected upstream Skills are installed into `.agents/skills/upstream/` and
 recorded in `.agents/skill-manifest.md` and `.agents/skill-manifest.json`.
 Skipped sources are recorded as skipped and are not left behind as stale upstream
-directories. When qmd is selected, the installer initializes a `knowledge-vault`
+directories. Stable Obsidian settings, the Things theme, and pinned obsidian-git
+plugin assets are generated under `.obsidian/`; volatile workspace state is not
+generated. When qmd is selected, the installer initializes a `knowledge-vault`
 collection at the target root.
 
 ## Requirements

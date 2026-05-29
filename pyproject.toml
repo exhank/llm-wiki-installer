@@ -52,7 +52,7 @@ llm-wiki-installer = "llm_wiki_installer.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-llm_wiki_installer = ["py.typed", "templates/*"]
+llm_wiki_installer = ["py.typed", "templates/*", "templates/**/*"]
 
 [tool.setuptools.dynamic]
 version = { attr = "llm_wiki_installer.__version__" }

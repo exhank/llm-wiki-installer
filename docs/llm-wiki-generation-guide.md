@@ -72,6 +72,18 @@ The setup wrapper must generate these paths at repository root:
 ├─ .scripts/
 │  ├─ postrun.sh
 │  └─ check-index-log.sh
+├─ .obsidian/
+│  ├─ app.json
+│  ├─ appearance.json
+│  ├─ backlink.json
+│  ├─ community-plugins.json
+│  ├─ core-plugins.json
+│  ├─ graph.json
+│  ├─ hotkeys.json
+│  ├─ plugins/
+│  │  └─ obsidian-git/
+│  └─ themes/
+│     └─ Things/
 └─ .gitignore
 ```
 
@@ -82,9 +94,10 @@ Must not generate:
 tests/
 fixtures/
 examples/
-.obsidian/plugins/
 third-party Skill rewrites or local substitutes
 project-owned SKILL.md
+.obsidian/workspace.json
+.obsidian/workspaces.json
 ```
 
 The installer must refuse targets that are the generator repository itself or a
@@ -305,8 +318,10 @@ brew install ripgrep fzf
 ### 4.4 Obsidian
 
 ```text
-Do not install Obsidian plugins.
-Do not generate .obsidian/plugins/.
+Generate stable Obsidian settings from fixed templates.
+Generate pinned Obsidian community plugin assets as templates, not runtime downloads.
+Generate the Things theme from fixed templates.
+Do not generate volatile workspace state.
 Do not treat Dataview, Bases, Canvas, or Omnisearch as dependencies.
 Obsidian is only the Markdown IDE / viewer.
 ```
@@ -416,7 +431,7 @@ Rules:
 ```text
 Install as many as are discovered.
 Do not maintain a local allowlist.
-Do not install Obsidian plugins.
+Do not treat Obsidian plugins as upstream Skills.
 Do not rewrite, fork, summarize, or generate local substitutes for missing third-party Skills.
 If the repo does not exist, clone fails, or no Skill directory is discovered -> setup fail.
 Record repo URL, pinned commit SHA, resolved commit SHA, install date, and installed Skill count.
@@ -494,6 +509,20 @@ Generated: YYYY-MM-DD
 - wiki/log.md
 - .scripts/postrun.sh
 - .scripts/check-index-log.sh
+- .obsidian/app.json
+- .obsidian/appearance.json
+- .obsidian/backlink.json
+- .obsidian/community-plugins.json
+- .obsidian/core-plugins.json
+- .obsidian/graph.json
+- .obsidian/hotkeys.json
+- .obsidian/plugins/obsidian-git/data.json
+- .obsidian/plugins/obsidian-git/main.js
+- .obsidian/plugins/obsidian-git/manifest.json
+- .obsidian/plugins/obsidian-git/obsidian_askpass.sh
+- .obsidian/plugins/obsidian-git/styles.css
+- .obsidian/themes/Things/manifest.json
+- .obsidian/themes/Things/theme.css
 - .codex/config.toml
 - .agents/skill-manifest.md
 - .agents/skill-manifest.json
@@ -546,13 +575,13 @@ The goal is to maintain a durable Markdown wiki compiled from user-approved raw 
 - `.agents/skill-manifest.md` and `.agents/skill-manifest.json` record installed skills and tool versions.
 - `.codex/hooks/` contains LLM hooks.
 - `.scripts/` contains fixed project scripts.
+- `.obsidian/` contains stable Obsidian settings, pinned community plugin assets, and the Things theme.
 
 ## Forbidden paths
 
 Do not create:
 
 - `.codex/rules/`
-- `.obsidian/plugins/`
 - `projects/`
 - `areas/`
 - `resources/`
@@ -829,13 +858,21 @@ if [ -d ".codex/rules" ]; then
   fail ".codex/rules/ must not exist."
 fi
 
-if [ -d ".obsidian/plugins" ]; then
-  fail ".obsidian/plugins/ must not exist."
-fi
-
-if git status --porcelain=v1 -- .codex/rules .obsidian/plugins | grep -q .; then
+if git status --porcelain=v1 -- .codex/rules | grep -q .; then
   fail "Forbidden paths are present in git status."
 fi
+
+for plugin_asset in \
+  .obsidian/plugins/obsidian-git/main.js \
+  .obsidian/plugins/obsidian-git/manifest.json \
+  .obsidian/plugins/obsidian-git/styles.css \
+  .obsidian/plugins/obsidian-git/data.json \
+  .obsidian/plugins/obsidian-git/obsidian_askpass.sh
+do
+  if [ ! -f "$plugin_asset" ]; then
+    fail "Required Obsidian plugin asset missing: $plugin_asset"
+  fi
+done
 
 unauthorized_skill_paths="$(
   find . \
@@ -994,7 +1031,6 @@ Thumbs.db
 .obsidian/workspaces.json
 .obsidian/workspace*.json
 .obsidian/cache
-.obsidian/plugins/
 
 # Node / Python
 node_modules/
@@ -1200,7 +1236,7 @@ adding directories based on preference
 creating unauthorized local Skill substitutes
 creating project-owned SKILL.md
 rewriting upstream skills into local skills
-generating Obsidian plugin config
+generating volatile Obsidian workspace state
 generating .codex/rules/
 creating example wiki content
 creating tests/ fixtures/ examples/
@@ -1221,8 +1257,12 @@ wiki/log.md exists
 .agents/skill-manifest.json exists
 .scripts/postrun.sh exists and executable
 .scripts/check-index-log.sh exists and executable
+.obsidian/app.json exists
+.obsidian/plugins/obsidian-git/main.js exists
+.obsidian/themes/Things/theme.css exists
 .codex/rules/ does not exist
-.obsidian/plugins/ does not exist
+.obsidian/workspace.json does not exist
+.obsidian/workspaces.json does not exist
 no project-owned SKILL.md exists
 no unauthorized local Skill substitute exists
 qmd is installed

@@ -79,6 +79,10 @@ def test_render_template_replaces_context_tokens(
     assert "| Collection Path | /tmp/vault |" in rendered
     assert "| Name | llm-wiki-installer |" in rendered
     assert "third-party upstream artifact" in rendered
+    assert (
+        "| obsidian-git plugin | bundled Obsidian community plugin template | 2.38.3 | installed |"
+        in rendered
+    )
     assert "{{" not in rendered
 
 
@@ -96,4 +100,10 @@ def test_render_json_manifest_template(
     )
     assert manifest["upstreamSkills"][0]["pinnedCommit"] == "a" * 40
     assert manifest["upstreamSkills"][1]["installedSkills"] == 2
+    assert manifest["obsidianAssets"]["plugins"][0]["id"] == "obsidian-git"
+    assert (
+        ".obsidian/workspace.json"
+        in manifest["obsidianAssets"]["excludedVolatileFiles"]
+    )
+    assert ".obsidian/plugins/obsidian-git/main.js" in manifest["generatedFiles"]
     assert "{{" not in rendered

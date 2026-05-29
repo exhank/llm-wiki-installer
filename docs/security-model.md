@@ -30,6 +30,11 @@ Pinned upstream commits make generated vaults reproducible for a given installer
 release. Updating those pins is a generator release decision and should be
 reviewed like any other supply-chain change.
 
+Obsidian theme and community plugin assets are bundled as installer templates.
+The installer does not download Obsidian plugin code at target generation time.
+Updating bundled Obsidian assets is a supply-chain change and should be
+reviewed like an upstream pin update.
+
 Users can pass `--dry-run` to inspect planned filesystem and network operations
 without writing files or running network steps. `--offline` disables network
 bootstrap operations; when it is used without an explicit `--skills` selection,
@@ -66,6 +71,8 @@ The generated `AGENTS.md` is the runtime policy authority. Upstream Skills are
 copied under `.agents/skills/upstream/` and must not override `AGENTS.md`.
 Generated manifests record selected tools, skipped tools, upstream pinned
 commits, resolved commits, and install results in both Markdown and JSON.
+Stable Obsidian settings, pinned community plugin assets, and the bundled theme
+are generated under `.obsidian/`; volatile workspace state is excluded.
 
 ## Maintainer Checklist
 
