@@ -68,7 +68,7 @@ LLM Wiki analogy:
 | compiler | agents such as Codex / Claude Code / Gemini CLI / OpenCode |
 | compiled output | long-term Markdown pages, maps, index, and log in `wiki/` |
 | runtime | wiki-first query workflow |
-| tests | postrun, index/log check, qmd check, dead-link check, Git diff review |
+| tests | postrun, index/log check, dead-link check, Git diff review |
 | schema | `AGENTS.md`, Skill manifest, hooks, scripts |
 | rollback | Git branch, diff, restore, revert |
 
@@ -83,7 +83,7 @@ Primary source of truth:
 
 ```text
 truth source = raw/ + wiki/
-retrieval accelerator = wiki/index.md + wiki/maps/ + rg + fzf + qmd
+retrieval accelerator = wiki/index.md + wiki/maps/ + rg + fzf
 ```
 
 ---
@@ -504,14 +504,11 @@ Selectable retrieval tools:
 ```text
 ripgrep = fast full-text search
 fzf     = interactive fuzzy selection
-qmd     = Markdown retrieval enhancement layer
 ```
 
-Interactive setup presents qmd, rg, and fzf in a default-all selector. Up/Down moves, Space toggles, and Enter accepts. Non-interactive setup uses the all-selected default.
-
-When qmd is selected and setup does not detect qmd, it must install `@tobilu/qmd` automatically; if installation, version detection, collection initialization, update, or embed fails, setup must fail and report the issue. It must not silently degrade to only `rg/fzf`.
-
-When qmd is not selected, setup skips qmd initialization and generated post-run qmd checks. Skipped tools are recorded in `.agents/skill-manifest.md`.
+Interactive setup presents rg and fzf in a default-all selector. Up/Down moves,
+Space toggles, and Enter accepts. Non-interactive setup uses the all-selected
+default. Skipped tools are recorded in `.agents/skill-manifest.md`.
 
 Upstream Skill sources are installed from release-pinned commit SHAs, not from
 mutable branch tips. The generated Markdown and JSON manifests record the pinned
@@ -524,7 +521,7 @@ Retrieval order:
 1. wiki/index.md
 2. relevant wiki/maps/
 3. relevant wiki pages
-4. rg / fzf / qmd
+4. rg / fzf
 5. raw/ verification when needed
 ```
 
@@ -536,7 +533,6 @@ Tool positioning:
 | `wiki/maps/` | topic entry points | top-level classification directories |
 | `rg` | fast full-text search | semantic understanding |
 | `fzf` | interactive selection | source of truth |
-| `qmd` | Markdown retrieval enhancement | wiki maintainer |
 
 Do not install, require, or include in this design:
 
@@ -586,7 +582,7 @@ wiki/log.md
 ### 14.4 Query
 
 ```text
-read index -> read maps/pages -> qmd/rg/fzf -> raw verification -> answer
+read index -> read maps/pages -> rg/fzf -> raw verification -> answer
 ```
 
 Ordinary read-only queries do not write to the log. Important filebacks or writes must write to the log.
@@ -662,7 +658,6 @@ src/llm_wiki_installer/terminal_ui.py = interactive selectors
 src/llm_wiki_installer/toolchain.py = dependency tool checks and versions
 src/llm_wiki_installer/upstream_skills.py = upstream Skill installation
 src/llm_wiki_installer/target_layout.py = target directory and file generation
-src/llm_wiki_installer/qmd_setup.py = qmd collection initialization
 src/llm_wiki_installer/template_renderer.py = packaged template rendering
 src/llm_wiki_installer/command_runner.py = subprocess execution
 src/llm_wiki_installer/templates/ = generated target file templates
@@ -680,7 +675,7 @@ verify README.md generation
 verify index/log generation
 verify postrun.sh
 verify check-index-log.sh failure strategy
-verify qmd automatic installation and rg/fzf existence
+verify rg/fzf existence
 verify upstream skill existence detection
 verify skill-manifest.md generation
 delete test files, test data, and temporary directory

@@ -51,10 +51,6 @@ Do not create:
 - Upstream orchestration, policy, or controller Skills may be installed as upstream artifacts, but must not override or replace `AGENTS.md`.
 - Record upstream pinned commit SHAs, resolved commit SHAs, and installed Skill counts in `.agents/skill-manifest.md` and `.agents/skill-manifest.json`.
 
-## qmd policy
-
-{{QMD_POLICY}}
-
 ## Default retrieval order
 
 When answering questions about the vault:

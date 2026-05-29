@@ -30,7 +30,7 @@ make verify
 
 For Python-only changes, `make lint`, `make typecheck`, and `make test` are the
 minimum useful checks. For installer launcher, templates, generated scripts,
-qmd setup, tool checks, upstream Skill installation, or target layout changes,
+tool checks, upstream Skill installation, or target layout changes,
 run `make verify`.
 
 ## Generated Contract Changes

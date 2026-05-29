@@ -5,7 +5,7 @@ from typing import Iterable, Optional
 
 from .errors import InstallerError
 
-TOOL_CHOICES = ("qmd", "rg", "fzf")
+TOOL_CHOICES = ("rg", "fzf")
 SKILL_CHOICES = ("Ar9av", "kepano")
 
 USAGE = """Usage: bash install.sh [options] [path/to/knowledge-vault]
@@ -20,11 +20,11 @@ Options:
   --yes
            Alias for --no-interactive.
   --tools LIST
-           Select dependency tools: qmd,rg,fzf, all, or none.
+           Select dependency tools: rg,fzf, all, or none.
   --skills LIST
            Select upstream Skill sources: Ar9av,kepano, all, or none.
   --no-install-tools
-           Do not install missing selectable tools such as qmd with npm.
+           Do not install missing selectable tools.
   --offline
            Do not perform network bootstrap operations.
   --dry-run

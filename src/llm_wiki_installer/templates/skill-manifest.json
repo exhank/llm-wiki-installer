@@ -8,23 +8,7 @@
     "projectOwnedSkill": false
   },
   "target": {{TARGET_JSON}},
-  "qmd": {
-    "source": "https://github.com/tobi/qmd",
-    "package": "@tobilu/qmd",
-    "installCommand": "npm install -g @tobilu/qmd",
-    "result": {{QMD_RESULT_JSON}},
-    "version": {{QMD_VERSION_JSON}},
-    "nodeVersion": {{NODE_VERSION_JSON}},
-    "npmVersion": {{NPM_VERSION_JSON}},
-    "collection": "knowledge-vault",
-    "collectionPath": {{TARGET_JSON}},
-    "indexedScope": "repository root"
-  },
   "tools": {
-    "qmd": {
-      "version": {{QMD_VERSION_JSON}},
-      "result": {{QMD_RESULT_JSON}}
-    },
     "rg": {
       "version": {{RG_VERSION_JSON}},
       "result": {{RG_RESULT_JSON}}

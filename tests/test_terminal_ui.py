@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import builtins
+from contextlib import nullcontext
+
 import pytest
 
 from llm_wiki_installer.errors import InstallerError
@@ -45,8 +48,44 @@ def test_can_prompt_requires_tty(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr("llm_wiki_installer.terminal_ui.sys.stdin", FakeStream(True))
     monkeypatch.setattr("llm_wiki_installer.terminal_ui.sys.stdout", FakeStream(False))
+    monkeypatch.setattr(
+        builtins,
+        "open",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(OSError("no tty")),
+    )
 
     assert not can_prompt()
+
+
+def test_can_prompt_uses_dev_tty_for_piped_stdin(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeStream:
+        def __init__(self, tty: bool) -> None:
+            self.tty = tty
+
+        def isatty(self) -> bool:
+            return self.tty
+
+    class FakeTty:
+        def __enter__(self) -> "FakeTty":
+            return self
+
+        def __exit__(self, *_exc: object) -> None:
+            return None
+
+    opened: list[tuple[str, str]] = []
+
+    def fake_open(path: str, mode: str, **_kwargs: object) -> FakeTty:
+        opened.append((path, mode))
+        return FakeTty()
+
+    monkeypatch.setattr("llm_wiki_installer.terminal_ui.sys.stdin", FakeStream(False))
+    monkeypatch.setattr("llm_wiki_installer.terminal_ui.sys.stdout", FakeStream(True))
+    monkeypatch.setattr(builtins, "open", fake_open)
+
+    assert can_prompt()
+    assert opened == [("/dev/tty", "r")]
 
 
 def test_prompt_multiselect_toggles_and_accepts(
@@ -57,7 +96,13 @@ def test_prompt_multiselect_toggles_and_accepts(
         ("one", "One", "First option"),
         ("two", "Two", "Second option"),
     )
-    monkeypatch.setattr("llm_wiki_installer.terminal_ui.read_key", lambda: next(keys))
+    monkeypatch.setattr(
+        "llm_wiki_installer.terminal_ui.prompt_stream",
+        lambda stream, _mode: nullcontext(stream),
+    )
+    monkeypatch.setattr(
+        "llm_wiki_installer.terminal_ui.read_key", lambda *_args: next(keys)
+    )
 
     assert prompt_multiselect("Pick", options) == ("two",)
     assert "Use Up/Down to move" in capsys.readouterr().out
@@ -66,7 +111,13 @@ def test_prompt_multiselect_toggles_and_accepts(
 def test_prompt_multiselect_reports_cancel(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr("llm_wiki_installer.terminal_ui.read_key", lambda: "\x03")
+    monkeypatch.setattr(
+        "llm_wiki_installer.terminal_ui.prompt_stream",
+        lambda stream, _mode: nullcontext(stream),
+    )
+    monkeypatch.setattr(
+        "llm_wiki_installer.terminal_ui.read_key", lambda *_args: "\x03"
+    )
 
     with pytest.raises(InstallerError, match="installation cancelled"):
         prompt_multiselect("Pick", (("one", "One", "First option"),))

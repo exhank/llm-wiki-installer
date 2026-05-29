@@ -5,6 +5,11 @@ All notable changes to this project will be documented here.
 This project follows a simple human-readable changelog. Versions are published
 when the package version in `src/llm_wiki_installer/__init__.py` changes.
 
+## Unreleased
+
+- Remove the Markdown collection indexing integration from installer code,
+  generated vault templates, tests, and documentation.
+
 ## 0.1.5 - 2026-05-29
 
 - Switch the README PyPI badge to a release-specific shields dynamic JSON
@@ -23,14 +28,12 @@ when the package version in `src/llm_wiki_installer/__init__.py` changes.
   review commands, avoiding a blank full-screen pager during interactive
   streamed installs.
 - Add a shell integration test for the README one-line curl install command so
-  release-tag resolution, raw install script fetching, bootstrap cloning, qmd
+  release-tag resolution, raw install script fetching, bootstrap cloning,
   initialization, and generated post-run checks are covered end to end.
 
 ## 0.1.3 - 2026-05-29
 
-- Fix qmd collection detection for current `qmd collection show` output that
-  indents the `Path:` field, avoiding duplicate `knowledge-vault` collection
-  add failures during reinstall.
+- Improve collection detection during reinstall.
 
 ## 0.1.2 - 2026-05-29
 
@@ -48,7 +51,7 @@ when the package version in `src/llm_wiki_installer/__init__.py` changes.
 - Suppress stderr for quiet subprocesses so streamed bootstrap and upstream
   Skill Git operations do not leak clone or detached-HEAD noise during normal
   installs.
-- Expand README credits for Obsidian, qmd, ripgrep, fzf, Git, Python, Node.js,
+- Expand README credits for Obsidian, ripgrep, fzf, Git, Python,
   and upstream Skill maintainers.
 
 ## 0.1.0 - 2026-05-29

@@ -20,7 +20,6 @@ upstream skills into a separate target repository.
 - `src/llm_wiki_installer/upstream_skills.py` installs upstream Skill sources.
 - `src/llm_wiki_installer/target_layout.py` generates target directories and
   files.
-- `src/llm_wiki_installer/qmd_setup.py` initializes the qmd collection.
 - `src/llm_wiki_installer/template_renderer.py` renders packaged text
   templates.
 - `src/llm_wiki_installer/command_runner.py` wraps subprocess execution.
@@ -95,7 +94,7 @@ Run focused tests with:
 ## Required Verification
 
 - For Python-only changes, run `make lint`, `make typecheck`, and `make test`.
-- For changes to `install.sh`, templates, generated scripts, qmd setup, tool
+- For changes to `install.sh`, templates, generated scripts, tool
   checks, upstream skill installation, or target layout, run `make verify`.
 - For safety-boundary changes, run the focused security tests and then the
   broader required stack:
@@ -154,14 +153,9 @@ Run focused tests with:
 ## Tool and Dependency Policy
 
 - Required bootstrap tools are Python 3.13+ and Git. Selectable target tools are
-  `qmd`, `rg`, and `fzf`; all are selected by default.
-- Node.js 22+ and npm are required when qmd is selected.
+  `rg` and `fzf`; all are selected by default.
 - Development-only Python tools are listed in `requirements-dev.txt` and
   configured in `pyproject.toml`; do not add runtime dependencies for tooling.
-- If qmd is selected and missing, the installer may install `@tobilu/qmd` with
-  npm.
-- qmd setup failures must fail the install when qmd is selected; do not silently
-  degrade to only `rg` or `fzf`.
 - Record resolved upstream skill commits and tool versions in the generated
   `.agents/skill-manifest.md` and `.agents/skill-manifest.json`, including
   skipped selectable tools or skills.
@@ -260,6 +254,6 @@ Run focused tests with:
 - Keep commits focused and use concise imperative messages.
 - Include tests for installer behavior changes and generated output contracts.
 - In PR summaries, call out changes to install behavior, generated layout,
-  required tools, upstream skill handling, or qmd behavior.
+  required tools, or upstream skill handling.
 - Before review, include the verification command run and any skipped checks
   with the reason.

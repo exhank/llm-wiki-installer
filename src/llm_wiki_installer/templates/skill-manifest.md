@@ -8,26 +8,10 @@ Generated: {{TODAY}}
 - This guide is the canonical generation spec.
 - Agent adapters are derived outputs.
 
-## qmd
-
-| Field | Value |
-| --- | --- |
-| Source | <https://github.com/tobi/qmd> |
-| Package | @tobilu/qmd |
-| Install Command | npm install -g @tobilu/qmd |
-| Result | {{QMD_RESULT}} |
-| Version | {{QMD_VERSION}} |
-| Node Version | {{NODE_VERSION}} |
-| npm Version | {{NPM_VERSION}} |
-| Collection | knowledge-vault |
-| Collection Path | {{TARGET}} |
-| Indexed Scope | repository root |
-
 ## Tools
 
 | Tool | Version | Result |
 | --- | --- | --- |
-| qmd | {{QMD_VERSION}} | {{QMD_RESULT}} |
 | rg | {{RG_VERSION}} | {{RG_RESULT}} |
 | fzf | {{FZF_VERSION}} | {{FZF_RESULT}} |
 

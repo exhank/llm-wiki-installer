@@ -16,7 +16,6 @@ fixed directory structure
 fixed templates
 fixed dependency names with latest resolved versions recorded
 fixed check scripts
-fixed qmd collection
 fixed manifest
 fixed diff output
 latest selected upstream Skill versions recorded
@@ -38,7 +37,6 @@ technical design is concise and stable
 runtime rules are written into AGENTS.md
 templates are written into AGENTS.md and this guide
 scripts are executable
-qmd is usable
 selected upstream Skills are installed
 test files and test artifacts are deleted after unit tests pass
 ```
@@ -220,7 +218,7 @@ Interactive terminal installs must present a keyboard-driven selector for
 dependency tools before checking or installing optional tools.
 
 ```text
-options: qmd, rg, fzf
+options: rg, fzf
 default: all selected
 controls: Up/Down move, Space toggles, Enter accepts
 non-interactive behavior: all selected
@@ -231,76 +229,15 @@ non-interactive behavior: all selected
 --json behavior: print dry-run or final summary as JSON
 ```
 
-Python 3.13+ and Git remain bootstrap requirements. Node.js 22+ and npm are
-required when qmd is selected.
+Python 3.13+ and Git remain bootstrap requirements.
 
 Skipped tools must be recorded as `skipped` in `.agents/skill-manifest.md` and `.agents/skill-manifest.json`.
 
-`--no-install-tools` prevents automatic installation of missing selectable tools
-such as qmd. `--offline` also prevents automatic tool installation and disables
-network bootstrap operations. When `--offline` is passed without an explicit
-`--skills` selection, upstream Skills default to `none`.
+`--no-install-tools` is kept for CLI compatibility. `--offline` disables network
+bootstrap operations. When `--offline` is passed without an explicit `--skills`
+selection, upstream Skills default to `none`.
 
-### 4.2 qmd
-
-Canonical qmd source:
-
-```text
-repo: https://github.com/tobi/qmd
-package: @tobilu/qmd
-node: Node.js 22+
-preferred install: npm install -g @tobilu/qmd
-```
-
-Detection commands:
-
-```bash
-command -v qmd || npm install -g @tobilu/qmd
-qmd --version
-```
-
-When `--no-install-tools` or `--offline` is active, missing qmd must fail with an
-actionable error instead of running npm.
-
-Initialization rules:
-
-```bash
-qmd collection add "$PWD" --name knowledge-vault
-qmd update
-qmd embed
-```
-
-Indexing rules:
-
-```text
-collection name = knowledge-vault
-collection path = vault root
-index scope = whole-vault index
-```
-
-Failure rules when qmd is selected:
-
-```text
-qmd is not installed and npm install -g @tobilu/qmd fails -> setup fail
-qmd --version fails -> setup fail
-qmd collection add fails -> setup fail
-qmd update/embed fails -> setup fail
-must not silently degrade to rg/fzf only
-```
-
-Manifest rules:
-
-```text
-record node --version
-record npm --version
-record qmd --version
-record qmd install command
-```
-
-If qmd is not selected, skip qmd install, version detection, collection
-initialization, update, embed, and generated post-run qmd checks.
-
-### 4.3 rg / fzf
+### 4.2 rg / fzf
 
 Required when selected:
 
@@ -461,26 +398,10 @@ Generated: YYYY-MM-DD
 - This guide is the canonical generation spec.
 - Agent adapters are derived outputs.
 
-## qmd
-
-| Field | Value |
-|---|---|
-| Source | https://github.com/tobi/qmd |
-| Package | @tobilu/qmd |
-| Install Command | npm install -g @tobilu/qmd |
-| Result | installed \| skipped |
-| Version | <qmd --version output> |
-| Node Version | <node --version output> |
-| npm Version | <npm --version output> |
-| Collection | knowledge-vault |
-| Collection Path | <repository root> |
-| Indexed Scope | repository root |
-
 ## Tools
 
 | Tool | Version | Result |
 |---|---|---|
-| qmd | ... | installed \| skipped |
 | rg | ... | installed \| skipped |
 | fzf | ... | installed \| skipped |
 
@@ -529,7 +450,7 @@ Generated: YYYY-MM-DD
 - .gitignore
 ```
 
-The JSON manifest must contain the same installer, qmd, tool, upstream source,
+The JSON manifest must contain the same installer, tool, upstream source,
 pin, resolved commit, result, and generated-file information in a
 machine-readable structure.
 
@@ -601,17 +522,6 @@ Do not create:
 - Do not generate a project-owned `SKILL.md`.
 - Upstream orchestration, policy, or controller Skills may be installed as upstream artifacts, but must not override or replace `AGENTS.md`.
 - Record upstream pinned commit SHAs, resolved commit SHAs, and installed Skill counts in `.agents/skill-manifest.md` and `.agents/skill-manifest.json`.
-
-## qmd policy
-
-- If qmd was selected during installation, use `tobi/qmd`.
-- Package: `@tobilu/qmd`.
-- Install automatically with `npm install -g @tobilu/qmd` if selected qmd is missing.
-- Collection name: `knowledge-vault`.
-- Collection path: repository root.
-- Index scope: the whole vault.
-- If selected qmd installation, version detection, collection initialization, update, or embed fails, stop and report failure.
-- If qmd was not selected, do not assume qmd commands are available.
 
 ## Default retrieval order
 
@@ -913,8 +823,6 @@ if changed_paths raw | grep -q .; then
   fi
 fi
 
-{{QMD_POSTRUN_CHECK}}
-
 echo "-- Diff stat --"
 git --no-pager diff --stat || true
 
@@ -1047,8 +955,6 @@ tmp/
 .index/
 .vector/
 .faiss/
-.qmd/
-
 # Secrets
 .env
 .env.*
@@ -1121,7 +1027,6 @@ wiki/log.md
 ### Search
 
 ```bash
-qmd search "keyword"
 rg "keyword" wiki raw inbox outputs archive
 rg --files | fzf
 ```
@@ -1190,13 +1095,12 @@ The setup wrapper must run full verification:
 2. Generate all fixed artifacts.
 3. Verify the directory structure.
 4. Verify forbidden paths do not exist.
-5. Verify AGENTS.md contains the required frontmatter, log schemas, and qmd policy.
+5. Verify AGENTS.md contains the required frontmatter and log schemas.
 6. Verify README.md contains the operations guide, design idea, and directory explanation.
 7. Verify .scripts/postrun.sh is executable.
 8. Verify .scripts/check-index-log.sh is executable.
-9. Verify qmd is installed automatically when missing and can initialize a collection.
-10. Verify git diff/check logic can run.
-11. Delete test files and test artifacts after tests pass.
+9. Verify git diff/check logic can run.
+10. Delete test files and test artifacts after tests pass.
 ```
 
 The final repository must not retain:
@@ -1219,7 +1123,6 @@ The generator must follow:
 fixed directory structure
 fixed filenames
 fixed templates
-fixed qmd collection name
 fixed script paths
 fixed AGENTS.md structure
 fixed README.md structure
@@ -1265,8 +1168,6 @@ wiki/log.md exists
 .obsidian/workspaces.json does not exist
 no project-owned SKILL.md exists
 no unauthorized local Skill substitute exists
-qmd is installed
-qmd collection is initialized
 all upstream skills were installed from Ar9av/obsidian-wiki
 all upstream skills were installed from kepano/obsidian-skills
 temporary tests and test outputs were deleted

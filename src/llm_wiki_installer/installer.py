@@ -9,7 +9,6 @@ from typing import Any
 from .command_runner import run
 from .errors import InstallerError
 from .install_options import Options
-from .qmd_setup import initialize_qmd
 from .target_layout import (
     GENERATED_FILES,
     REQUIRED_DIRECTORIES,
@@ -68,14 +67,6 @@ def run_install(options: Options) -> None:
     write_generated_files(
         target, context, force=options.force, quiet=options.json_output
     )
-
-    if "qmd" in selected_tools:
-        log("Initialize qmd", quiet=options.json_output)
-        initialize_qmd(target, quiet=options.json_output)
-    else:
-        log("Skip qmd", quiet=options.json_output)
-        if not options.json_output:
-            print("qmd was not selected; skipping collection initialization.")
 
     log("Verify target", quiet=options.json_output)
     run(["bash", ".scripts/postrun.sh"], cwd=target, quiet=options.json_output)
@@ -223,8 +214,7 @@ def network_steps(
     if offline:
         return []
     steps = []
-    if "qmd" in selected_tools and install_tools:
-        steps.append("npm install -g @tobilu/qmd if qmd is missing")
+    del selected_tools, install_tools
     for skill in selected_skills:
         steps.append(f"git clone pinned upstream Skill source: {skill}")
     return steps

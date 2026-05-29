@@ -11,7 +11,7 @@ for users and maintainers to audit.
 - The target vault is user-owned content and must not be confused with the
   generator repository.
 - Upstream Skill repositories are third-party content copied as artifacts.
-- `qmd`, `rg`, `fzf`, Git, Node.js, and npm are external tools.
+- `rg`, `fzf`, and Git are external tools.
 - Generated scripts run inside the target vault and must treat user content as
   untrusted input.
 
@@ -23,8 +23,7 @@ The installer may access the network only for documented bootstrap operations:
   typically through `uvx --python 3.13 llm-wiki-installer`;
 - streamed installs clone `llm-wiki-installer` from the configured repository
   and release ref, defaulting to `v0.1.0`;
-- selected upstream Skill sources are cloned at pinned commit SHAs;
-- npm may install `@tobilu/qmd` when qmd is selected and missing.
+- selected upstream Skill sources are cloned at pinned commit SHAs.
 
 Pinned upstream commits make generated vaults reproducible for a given installer
 release. Updating those pins is a generator release decision and should be
@@ -38,8 +37,7 @@ reviewed like an upstream pin update.
 Users can pass `--dry-run` to inspect planned filesystem and network operations
 without writing files or running network steps. `--offline` disables network
 bootstrap operations; when it is used without an explicit `--skills` selection,
-upstream Skills default to `none`. `--no-install-tools` disables npm-based
-installation of missing selectable tools.
+upstream Skills default to `none`.
 
 ## Filesystem Safety
 
@@ -61,8 +59,6 @@ should fail closed when required tools or policy checks are missing.
 Security-sensitive commands include:
 
 - Git clone, fetch, checkout, init, and diff operations;
-- npm global installation of `@tobilu/qmd`;
-- qmd collection initialization, update, and embed;
 - generated post-run and index/log verification scripts.
 
 ## Generated Vault Policy

@@ -22,8 +22,6 @@ tmp/
 .index/
 .vector/
 .faiss/
-.qmd/
-
 # Secrets
 .env
 .env.*

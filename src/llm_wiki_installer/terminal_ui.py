@@ -3,7 +3,8 @@ from __future__ import annotations
 import sys
 import termios
 import tty
-from typing import Sequence
+from contextlib import contextmanager
+from typing import Iterator, Sequence, TextIO, cast
 
 from .errors import InstallerError
 
@@ -17,7 +18,26 @@ def select_options(
 
 
 def can_prompt() -> bool:
-    return sys.stdin.isatty() and sys.stdout.isatty()
+    return sys.stdout.isatty() and stream_or_tty_available(sys.stdin, "r")
+
+
+def stream_or_tty_available(stream: TextIO, mode: str) -> bool:
+    if stream.isatty():
+        return True
+    try:
+        with open("/dev/tty", mode, encoding="utf-8"):
+            return True
+    except OSError:
+        return False
+
+
+@contextmanager
+def prompt_stream(stream: TextIO, mode: str) -> Iterator[TextIO]:
+    if stream.isatty():
+        yield stream
+        return
+    with open("/dev/tty", mode, encoding="utf-8", buffering=1) as tty_stream:
+        yield cast(TextIO, tty_stream)
 
 
 def prompt_multiselect(
@@ -28,21 +48,25 @@ def prompt_multiselect(
     line_count = len(options) + 4
     first_render = True
 
-    while True:
-        if not first_render:
-            sys.stdout.write(f"\x1b[{line_count}A")
-        first_render = False
-        render_multiselect(title, options, selected, cursor)
+    with (
+        prompt_stream(sys.stdin, "r") as input_stream,
+        prompt_stream(sys.stdout, "w") as output_stream,
+    ):
+        while True:
+            if not first_render:
+                output_stream.write(f"\x1b[{line_count}A")
+            first_render = False
+            render_multiselect(title, options, selected, cursor, output_stream)
 
-        key = read_key()
-        if key in ("\r", "\n"):
-            break
-        if key == "\x03":
-            raise InstallerError("installation cancelled.")
-        cursor, selected = apply_multiselect_key(key, options, cursor, selected)
+            key = read_key(input_stream)
+            if key in ("\r", "\n"):
+                break
+            if key == "\x03":
+                raise InstallerError("installation cancelled.")
+            cursor, selected = apply_multiselect_key(key, options, cursor, selected)
 
-    sys.stdout.write("\n")
-    sys.stdout.flush()
+        output_stream.write("\n")
+        output_stream.flush()
     return tuple(key for key, _, _ in options if key in selected)
 
 
@@ -51,7 +75,9 @@ def render_multiselect(
     options: Sequence[tuple[str, str, str]],
     selected: set[str],
     cursor: int,
+    output_stream: TextIO | None = None,
 ) -> None:
+    stream = output_stream or sys.stdout
     lines = [
         title,
         "Use Up/Down to move, Space to toggle, Enter to continue. Default: all selected.",
@@ -64,18 +90,19 @@ def render_multiselect(
     lines.append("")
 
     for line in lines:
-        sys.stdout.write(f"\x1b[2K{line}\n")
-    sys.stdout.flush()
+        stream.write(f"\x1b[2K{line}\n")
+    stream.flush()
 
 
-def read_key() -> str:
-    fd = sys.stdin.fileno()
+def read_key(input_stream: TextIO | None = None) -> str:
+    stream = input_stream or sys.stdin
+    fd = stream.fileno()
     old_settings = termios.tcgetattr(fd)
     try:
         tty.setraw(fd)
-        key = sys.stdin.read(1)
+        key = stream.read(1)
         if key == "\x1b":
-            key += sys.stdin.read(2)
+            key += stream.read(2)
         return key
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)

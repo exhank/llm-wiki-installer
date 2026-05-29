@@ -10,8 +10,8 @@
 Markdown knowledge vault from one command.
 
 It turns an empty folder into a durable Markdown knowledge system with clear
-evidence boundaries, agent policy, helper scripts, qmd setup, and selected
-upstream Skills. The generated vault is designed for a simple loop: collect
+evidence boundaries, agent policy, helper scripts, and selected upstream
+Skills. The generated vault is designed for a simple loop: collect
 approved sources, compile them into `wiki/`, retrieve from the wiki first, and
 review every change through Git.
 
@@ -60,7 +60,6 @@ project sets up a stricter vault contract:
 - Python installer package with no runtime third-party dependencies.
 - Interactive default-all selectors for dependency tools and upstream Skill
   sources.
-- Optional qmd collection setup with Node.js 22+ validation.
 - Generated AGENTS policy, README, scripts, Codex config, index, log, and
   Markdown plus JSON manifests.
 - Generated stable Obsidian settings with bundled Things theme and obsidian-git
@@ -100,7 +99,7 @@ The operating model is intentionally file-first:
 approved sources -> raw/ -> wiki pages -> wiki/index.md + wiki/maps/
                          \-> wiki/log.md -> Git diff review
 
-agents read AGENTS.md -> retrieve with qmd/rg/fzf -> verify against raw/
+agents read AGENTS.md -> retrieve with rg/fzf -> verify against raw/
 ```
 
 ## Generate A Vault
@@ -172,7 +171,7 @@ bash install.sh --dry-run --json /path/to/knowledge-vault
 Select tools and upstream Skills explicitly:
 
 ```bash
-bash install.sh --tools qmd,rg --skills kepano /path/to/knowledge-vault
+bash install.sh --tools rg --skills kepano /path/to/knowledge-vault
 bash install.sh --tools none --skills none /path/to/knowledge-vault
 ```
 
@@ -185,13 +184,13 @@ bash install.sh --offline --tools rg --skills none /path/to/knowledge-vault
 Run without automatically installing missing selectable tools:
 
 ```bash
-bash install.sh --no-install-tools --tools qmd,rg /path/to/knowledge-vault
+bash install.sh --no-install-tools --tools rg /path/to/knowledge-vault
 ```
 
 When run from an interactive terminal, the installer shows two onboarding
 selectors before generating files:
 
-- dependency tools: `qmd`, `rg`, and `fzf`
+- dependency tools: `rg` and `fzf`
 - upstream Skill sources: `Ar9av/obsidian-wiki` and `kepano/obsidian-skills`
 
 Both selectors default to all options selected. Use Up/Down to move, Space to
@@ -235,28 +234,20 @@ recorded in `.agents/skill-manifest.md` and `.agents/skill-manifest.json`.
 Skipped sources are recorded as skipped and are not left behind as stale upstream
 directories. Stable Obsidian settings, the Things theme, and pinned obsidian-git
 plugin assets are generated under `.obsidian/`; volatile workspace state is not
-generated. When qmd is selected, the installer initializes a `knowledge-vault`
-collection at the target root.
+generated.
 
 ## Requirements
 
 - Python 3.13+
 - Git
-- Node.js 22+ and npm when qmd is selected
 - `rg` when selected
 - `fzf` when selected
 - Network access to PyPI for `uvx`, GitHub for streamed installs and upstream
-  Skills, and npm when qmd is selected and missing
-
-If `qmd` is selected and missing, the installer runs:
-
-```bash
-npm install -g @tobilu/qmd
-```
+  Skills
 
 Pass `--no-install-tools` to require preinstalled tools instead. Pass
-`--offline` to disable npm installation and upstream Skill cloning; when
-`--offline` is used without `--skills`, upstream Skills default to `none`.
+`--offline` to disable upstream Skill cloning; when `--offline` is used without
+`--skills`, upstream Skills default to `none`.
 
 ## CLI Options
 
@@ -264,7 +255,7 @@ Pass `--no-install-tools` to require preinstalled tools instead. Pass
 --force              overwrite generated files in the target vault
 --no-interactive     use default all-selected prompts without asking
 --yes                alias for --no-interactive
---tools LIST         qmd,rg,fzf, all, or none
+--tools LIST         rg,fzf, all, or none
 --skills LIST        Ar9av,kepano, all, or none
 --no-install-tools   fail if a selected missing tool would need installation
 --offline            do not run network bootstrap operations
@@ -278,10 +269,8 @@ Installer failures are intended to be actionable. Common fixes:
 
 - Missing Python: install Python 3.13+ or use `uvx --python 3.13`.
 - Missing Git: install Git and rerun the same command.
-- Missing Node.js/npm with qmd selected: install Node.js 22+ and npm, or run
-  with `--tools rg,fzf`.
-- qmd install blocked: install `@tobilu/qmd` manually, or use
-  `--no-install-tools` to fail before any automatic install attempt.
+- Missing `rg` or `fzf`: install the selected tool or rerun with `--tools`
+  excluding it.
 - Network unavailable: use `--offline --skills none`; selected upstream Skills
   require GitHub access.
 
@@ -291,9 +280,8 @@ The installer does not include telemetry. It writes only under the target vault
 root after rejecting the generator repository itself and child paths. Network
 access is limited to documented bootstrap operations: fetching the published
 package from PyPI when using `uvx`, cloning this installer for streamed
-installs, cloning selected pinned upstream Skill sources, and installing
-`@tobilu/qmd` with npm when qmd is selected and missing. Use `--dry-run` to
-inspect the plan first, and `--offline` to disable installer-managed network
+installs, and cloning selected pinned upstream Skill sources. Use `--dry-run`
+to inspect the plan first, and `--offline` to disable installer-managed network
 bootstrap operations after the package or launcher has already started.
 
 ## Develop
@@ -362,13 +350,10 @@ builds on:
 
 - [Obsidian](https://obsidian.md/) for the local-first Markdown knowledge base
   model this installer targets.
-- [`@tobilu/qmd`](https://www.npmjs.com/package/@tobilu/qmd) for Markdown
-  collection indexing and retrieval.
 - [ripgrep](https://github.com/BurntSushi/ripgrep) and
   [fzf](https://github.com/junegunn/fzf) for fast local search and selection.
 - [Git](https://git-scm.com/), [Python](https://www.python.org/), and
-  [Node.js](https://nodejs.org/) for the portable installer and verification
-  toolchain.
+  related tooling for the portable installer and verification toolchain.
 
 These acknowledgements do not imply endorsement by those projects. They are
 included to make the dependencies and inspiration behind `llm-wiki-installer`

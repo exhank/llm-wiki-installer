@@ -59,79 +59,6 @@ write_stub_tools() {
 exec "$REAL_PYTHON3" "\$@"
 EOF_PYTHON3
 
-  cat >"$bin/node" <<'EOF_NODE'
-#!/usr/bin/env bash
-set -euo pipefail
-if [ "${1:-}" = "--version" ]; then
-  echo "${STUB_NODE_VERSION:-v22.3.0}"
-  exit 0
-fi
-exit 0
-EOF_NODE
-
-  cat >"$bin/npm" <<'EOF_NPM'
-#!/usr/bin/env bash
-set -euo pipefail
-if [ "${1:-}" = "--version" ]; then
-  echo "${STUB_NPM_VERSION:-10.8.0}"
-  exit 0
-fi
-if [ "${1:-}" = "install" ]; then
-  if [ -n "${TEST_NPM_LOG:-}" ]; then
-    echo "npm $*" >>"$TEST_NPM_LOG"
-  fi
-  if [ "${*: -1}" = "@tobilu/qmd" ]; then
-    qmd_path="$(cd "$(dirname "$0")" && pwd -P)/qmd"
-    cat >"$qmd_path" <<'EOF_INSTALLED_QMD'
-#!/usr/bin/env bash
-set -euo pipefail
-
-log_qmd() {
-  if [ -n "${TEST_QMD_LOG:-}" ]; then
-    echo "qmd $*" >>"$TEST_QMD_LOG"
-  fi
-}
-
-case "${1:-}" in
-  --version)
-    echo "qmd 1.2.3"
-    ;;
-  collection)
-    case "${2:-}" in
-      show)
-        log_qmd "$*"
-        if [ -n "${QMD_COLLECTION_PATH:-}" ]; then
-          echo "Name: ${3:-knowledge-vault}"
-          echo "Path: $QMD_COLLECTION_PATH"
-          exit 0
-        fi
-        exit 1
-        ;;
-      add|remove)
-        log_qmd "$*"
-        ;;
-      *)
-        echo "unexpected qmd collection command: $*" >&2
-        exit 2
-        ;;
-    esac
-    ;;
-  update|embed)
-    log_qmd "$*"
-    ;;
-  *)
-    echo "unexpected qmd command: $*" >&2
-    exit 2
-    ;;
-esac
-EOF_INSTALLED_QMD
-    chmod +x "$qmd_path"
-  fi
-  exit 0
-fi
-exit 0
-EOF_NPM
-
   cat >"$bin/rg" <<'EOF_RG'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -147,50 +74,6 @@ if [ "${1:-}" = "--version" ]; then
   echo "0.56.0 (test)"
 fi
 EOF_FZF
-
-  cat >"$bin/qmd" <<'EOF_QMD'
-#!/usr/bin/env bash
-set -euo pipefail
-
-log_qmd() {
-  if [ -n "${TEST_QMD_LOG:-}" ]; then
-    echo "qmd $*" >>"$TEST_QMD_LOG"
-  fi
-}
-
-case "${1:-}" in
-  --version)
-    echo "qmd 1.2.3"
-    ;;
-  collection)
-    case "${2:-}" in
-      show)
-        log_qmd "$*"
-        if [ -n "${QMD_COLLECTION_PATH:-}" ]; then
-          echo "Name: ${3:-knowledge-vault}"
-          echo "Path: $QMD_COLLECTION_PATH"
-          exit 0
-        fi
-        exit 1
-        ;;
-      add|remove)
-        log_qmd "$*"
-        ;;
-      *)
-        echo "unexpected qmd collection command: $*" >&2
-        exit 2
-        ;;
-    esac
-    ;;
-  update|embed)
-    log_qmd "$*"
-    ;;
-  *)
-    echo "unexpected qmd command: $*" >&2
-    exit 2
-    ;;
-esac
-EOF_QMD
 
   cat >"$bin/curl" <<'EOF_CURL'
 #!/usr/bin/env bash
@@ -322,7 +205,7 @@ case "$cmd" in
 esac
 EOF_GIT
 
-  chmod +x "$bin/python3" "$bin/node" "$bin/npm" "$bin/rg" "$bin/fzf" "$bin/qmd" "$bin/curl" "$bin/git"
+  chmod +x "$bin/python3" "$bin/rg" "$bin/fzf" "$bin/curl" "$bin/git"
 }
 
 setup_case() {
@@ -410,14 +293,12 @@ test_readme_one_line_curl_install_command() {
   local out="$CASE_DIR/out.txt"
   local curl_log="$CASE_DIR/curl.log"
   local git_log="$CASE_DIR/git.log"
-  local qmd_log="$CASE_DIR/qmd.log"
   local target="$CASE_DIR/vault"
 
   TEST_CURL_RAW_INSTALL_SOURCE="$ROOT/install.sh" \
     TEST_CURL_LOG="$curl_log" \
     TEST_GIT_BOOTSTRAP_SOURCE="$ROOT" \
     TEST_GIT_BOOTSTRAP_LOG="$git_log" \
-    TEST_QMD_LOG="$qmd_log" \
     run_with_stubs /bin/bash -c \
       'curl -fsSL https://raw.githubusercontent.com/exhank/llm-wiki-installer/main/install.sh | /bin/bash -s -- --no-interactive "$1"' \
       _ "$target" >"$out" 2>&1
@@ -431,7 +312,6 @@ test_readme_one_line_curl_install_command() {
   assert_file "$target/.agents/skills/upstream/kepano/kepano-skill/SKILL.md"
   assert_contains "$curl_log" "raw.githubusercontent.com/exhank/llm-wiki-installer/main/install.sh"
   assert_contains "$git_log" "fetch -q --depth 1 origin v9.8.7"
-  assert_contains "$qmd_log" "qmd collection add $canonical_target --name knowledge-vault"
   assert_contains "$target/.scripts/postrun.sh" "git --no-pager diff --stat"
   assert_contains "$out" "Generated llm-wiki knowledge vault at: $canonical_target"
 }
@@ -464,32 +344,19 @@ test_refuses_generator_lookalike() {
   assert_contains "$out" "ERROR: target looks like the llm-wiki generator repository:"
 }
 
-test_rejects_old_node() {
-  setup_case old-node
-  local out="$CASE_DIR/out.txt"
-  local target="$CASE_DIR/vault"
-  if STUB_NODE_VERSION="v20.19.0" run_install "$out" "$target"; then
-    sed -n '1,220p' "$out" >&2
-    fail_assertion "expected Node.js version failure"
-  fi
-  assert_contains "$out" "ERROR: Node.js 22+ is required. Found: v20.19.0."
-}
-
 test_default_target_is_current_directory() {
   setup_case default-target
   local out="$CASE_DIR/out.txt"
-  local qmd_log="$CASE_DIR/qmd.log"
   local target="$CASE_DIR/vault"
   mkdir -p "$target"
 
-  (cd "$target" && TEST_QMD_LOG="$qmd_log" run_with_stubs bash "$ROOT/install.sh") >"$out" 2>&1
+  (cd "$target" && run_with_stubs bash "$ROOT/install.sh") >"$out" 2>&1
   local canonical_target=""
   canonical_target="$(cd "$target" && pwd -P)"
 
   assert_file "$target/AGENTS.md"
   assert_file "$target/.agents/skill-manifest.md"
   assert_file "$target/.agents/skill-manifest.json"
-  assert_contains "$qmd_log" "qmd collection add $canonical_target --name knowledge-vault"
   assert_contains "$out" "Generated llm-wiki knowledge vault at: $canonical_target"
 }
 
@@ -502,7 +369,6 @@ test_no_interactive_uses_default_selection() {
 
   assert_file "$target/.agents/skills/upstream/Ar9av/ar9av-skill/SKILL.md"
   assert_file "$target/.agents/skills/upstream/kepano/kepano-skill/SKILL.md"
-  assert_contains "$target/.agents/skill-manifest.md" "| qmd | qmd 1.2.3 | installed |"
   assert_contains "$target/.agents/skill-manifest.md" "| rg | ripgrep 14.1.0 | installed |"
   assert_contains "$target/.agents/skill-manifest.md" "| fzf | 0.56.0 (test) | installed |"
 }
@@ -535,9 +401,8 @@ test_dry_run_json_outputs_plan() {
 test_full_install_generates_expected_layout() {
   setup_case full-install
   local out="$CASE_DIR/out.txt"
-  local qmd_log="$CASE_DIR/qmd.log"
   local target="$CASE_DIR/vault"
-  TEST_QMD_LOG="$qmd_log" run_install "$out" "$target"
+  run_install "$out" "$target"
   local canonical_target=""
   canonical_target="$(cd "$target" && pwd -P)"
 
@@ -573,10 +438,6 @@ test_full_install_generates_expected_layout() {
   assert_contains "$target/.agents/skill-manifest.md" "553ef99aa3306dd23f268e1ba9af752577684f69"
   assert_contains "$target/.agents/skill-manifest.json" '"name": "llm-wiki-installer"'
   assert_contains "$target/.agents/skill-manifest.json" '"pinnedCommit": "347e85704c52474d13470a3919e4a5cd7e3809cb"'
-  assert_contains "$target/.agents/skill-manifest.md" "| qmd | qmd 1.2.3 | installed |"
-  assert_contains "$qmd_log" "qmd collection add $canonical_target --name knowledge-vault"
-  assert_contains "$qmd_log" "qmd update"
-  assert_contains "$qmd_log" "qmd embed"
   assert_contains "$out" "Generated llm-wiki knowledge vault at: $canonical_target"
 }
 
@@ -595,52 +456,6 @@ test_existing_generated_files_are_preserved_unless_force_is_used() {
   run_install "$out" --force "$target"
   assert_contains "$target/README.md" "# Knowledge Vault"
   assert_not_contains "$target/README.md" "custom readme"
-}
-
-test_installs_qmd_when_missing() {
-  setup_case qmd-missing
-  local out="$CASE_DIR/out.txt"
-  local npm_log="$CASE_DIR/npm.log"
-  local qmd_log="$CASE_DIR/qmd.log"
-  local target="$CASE_DIR/vault"
-  rm -f "$STUB_BIN/qmd"
-
-  TEST_NPM_LOG="$npm_log" TEST_QMD_LOG="$qmd_log" run_install "$out" "$target"
-
-  assert_contains "$npm_log" "npm install -g @tobilu/qmd"
-  assert_contains "$qmd_log" "qmd collection add"
-  assert_contains "$out" "Generated llm-wiki knowledge vault at:"
-}
-
-test_qmd_keeps_existing_collection_bound_to_target() {
-  setup_case qmd-current
-  local out="$CASE_DIR/out.txt"
-  local qmd_log="$CASE_DIR/qmd.log"
-  local target="$CASE_DIR/vault"
-  mkdir -p "$target"
-  local canonical_target=""
-  canonical_target="$(cd "$target" && pwd -P)"
-
-  TEST_QMD_LOG="$qmd_log" QMD_COLLECTION_PATH="$canonical_target" run_install "$out" "$target"
-
-  assert_contains "$out" "qmd collection knowledge-vault already points to target"
-  assert_not_contains "$qmd_log" "qmd collection remove knowledge-vault"
-  assert_not_contains "$qmd_log" "qmd collection add $canonical_target --name knowledge-vault"
-}
-
-test_qmd_rebinds_existing_collection() {
-  setup_case qmd-rebind
-  local out="$CASE_DIR/out.txt"
-  local qmd_log="$CASE_DIR/qmd.log"
-  local target="$CASE_DIR/vault"
-
-  TEST_QMD_LOG="$qmd_log" QMD_COLLECTION_PATH="/old/vault" run_install "$out" "$target"
-  local canonical_target=""
-  canonical_target="$(cd "$target" && pwd -P)"
-
-  assert_contains "$out" "qmd collection knowledge-vault points to /old/vault; rebinding to $canonical_target"
-  assert_contains "$qmd_log" "qmd collection remove knowledge-vault"
-  assert_contains "$qmd_log" "qmd collection add $canonical_target --name knowledge-vault"
 }
 
 test_upstream_repo_without_skills_fails() {
@@ -790,16 +605,12 @@ main() {
   run_test test_refuses_generator_directory
   run_test test_refuses_generator_child_directory
   run_test test_refuses_generator_lookalike
-  run_test test_rejects_old_node
   run_test test_default_target_is_current_directory
   run_test test_no_interactive_uses_default_selection
   run_test test_dry_run_writes_nothing
   run_test test_dry_run_json_outputs_plan
   run_test test_full_install_generates_expected_layout
   run_test test_existing_generated_files_are_preserved_unless_force_is_used
-  run_test test_installs_qmd_when_missing
-  run_test test_qmd_keeps_existing_collection_bound_to_target
-  run_test test_qmd_rebinds_existing_collection
   run_test test_upstream_repo_without_skills_fails
   run_test test_upstream_repo_without_skill_files_fails
   run_test test_generated_check_index_log_requires_index_and_log

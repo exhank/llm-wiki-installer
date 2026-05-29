@@ -22,17 +22,11 @@ from llm_wiki_installer.installer import (
     run_install,
     source_root,
 )
-from llm_wiki_installer.qmd_setup import (
-    initialize_qmd,
-    parse_qmd_collection_path,
-)
 from llm_wiki_installer.target_layout import (
     EXECUTABLE_FILES,
     GENERATED_FILES,
     REQUIRED_DIRECTORIES,
     prepare_target,
-    qmd_policy_text,
-    qmd_postrun_check,
     retrieval_tools_text,
     search_commands_text,
     write_file,
@@ -42,9 +36,7 @@ from llm_wiki_installer.template_renderer import render_template
 from llm_wiki_installer.toolchain import (
     ToolVersions,
     check_required_tools,
-    node_major_version,
     require_executable,
-    require_node_22,
     tool_version,
     tool_versions,
 )
@@ -91,7 +83,7 @@ def test_parse_options_accepts_explicit_tools_and_skills() -> None:
     options = parse_options(
         [
             "--tools",
-            "qmd,rg",
+            "rg,fzf",
             "--skills=kepano",
             "--no-install-tools",
             "--offline",
@@ -101,7 +93,7 @@ def test_parse_options_accepts_explicit_tools_and_skills() -> None:
         ]
     )
 
-    assert options.tools == ("qmd", "rg")
+    assert options.tools == ("rg", "fzf")
     assert options.skills == ("kepano",)
     assert not options.install_tools
     assert options.offline
@@ -170,37 +162,6 @@ def test_main_module_exits_with_cli_status(monkeypatch: pytest.MonkeyPatch) -> N
         runpy.run_module("llm_wiki_installer.__main__", run_name="__main__")
 
     assert excinfo.value.code == 7
-
-
-@pytest.mark.parametrize(
-    ("version", "expected"),
-    [
-        ("v22.3.0", 22),
-        ("23.0.1", 23),
-        ("not-a-version", None),
-        ("", None),
-    ],
-)
-def test_node_major_version(version: str, expected: int | None) -> None:
-    assert node_major_version(version) == expected
-
-
-@pytest.mark.parametrize(
-    ("output", "expected"),
-    [
-        ("Name: knowledge-vault\nPath: /tmp/vault\n", "/tmp/vault"),
-        (
-            "Collection: knowledge-vault\n"
-            "  Path:     /Users/zayton/Developer/Playground/my-vault/knowledge-vault\n"
-            "  Pattern:  **/*.md\n",
-            "/Users/zayton/Developer/Playground/my-vault/knowledge-vault",
-        ),
-        ("Name: knowledge-vault\n", ""),
-        ("", ""),
-    ],
-)
-def test_parse_qmd_collection_path(output: str, expected: str) -> None:
-    assert parse_qmd_collection_path(output) == expected
 
 
 def test_source_root_prefers_environment(
@@ -340,137 +301,15 @@ def test_require_executable_rejects_missing_tool(
         require_executable("missing", "missing tool")
 
 
-def test_require_node_22_rejects_unparseable_version(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setattr(
-        "llm_wiki_installer.toolchain.shutil.which", lambda _name: "/bin/node"
-    )
-    monkeypatch.setattr(
-        "llm_wiki_installer.toolchain.command_output",
-        lambda _command, fallback="": "banana",
-    )
-
-    with pytest.raises(InstallerError, match="Found: banana"):
-        require_node_22()
-
-
-def test_require_node_22_rejects_old_version(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        "llm_wiki_installer.toolchain.shutil.which", lambda _name: "/bin/node"
-    )
-    monkeypatch.setattr(
-        "llm_wiki_installer.toolchain.command_output",
-        lambda _command, fallback="": "v20.19.0",
-    )
-
-    with pytest.raises(InstallerError, match="Found: v20.19.0"):
-        require_node_22()
-
-
-def test_check_required_tools_installs_missing_qmd(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    calls: list[list[str]] = []
-
-    def fake_which(name: str) -> str | None:
-        if name == "qmd":
-            return None
-        return f"/bin/{name}"
-
-    def fakerun(
-        command: list[str],
-        cwd: Path | None = None,
-        capture: bool = False,
-        check: bool = True,
-        quiet: bool = False,
-        error: str | None = None,
-    ) -> subprocess.CompletedProcess[str]:
-        del cwd, capture, check, quiet, error
-        calls.append(command)
-        return subprocess.CompletedProcess(command, 0, stdout="ok\n", stderr="")
-
-    monkeypatch.setattr("llm_wiki_installer.toolchain.shutil.which", fake_which)
-    monkeypatch.setattr(
-        "llm_wiki_installer.toolchain.command_output",
-        lambda _command, fallback="": "v22.3.0",
-    )
-    monkeypatch.setattr("llm_wiki_installer.toolchain.run", fakerun)
-
-    check_required_tools(("qmd", "rg", "fzf"))
-
-    assert ["npm", "install", "-g", "@tobilu/qmd"] in calls
-    assert ["qmd", "--version"] in calls
-
-
-def test_check_required_tools_can_disable_qmd_install(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    def fake_which(name: str) -> str | None:
-        if name == "qmd":
-            return None
-        return f"/bin/{name}"
-
-    monkeypatch.setattr("llm_wiki_installer.toolchain.shutil.which", fake_which)
-    monkeypatch.setattr(
-        "llm_wiki_installer.toolchain.command_output",
-        lambda _command, fallback="": "v22.3.0",
-    )
-
-    with pytest.raises(InstallerError, match="qmd is selected but was not found"):
-        check_required_tools(("qmd",), install_missing=False)
-
-
-def test_check_required_tools_uses_existing_qmd(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    calls: list[list[str]] = []
-
-    def fakerun(
-        command: list[str],
-        cwd: Path | None = None,
-        capture: bool = False,
-        check: bool = True,
-        quiet: bool = False,
-        error: str | None = None,
-    ) -> subprocess.CompletedProcess[str]:
-        del cwd, capture, check, quiet, error
-        calls.append(command)
-        return subprocess.CompletedProcess(command, 0, stdout="ok\n", stderr="")
-
-    monkeypatch.setattr(
-        "llm_wiki_installer.toolchain.shutil.which",
-        lambda name: f"/bin/{name}",
-    )
-    monkeypatch.setattr(
-        "llm_wiki_installer.toolchain.command_output",
-        lambda _command, fallback="": "v22.3.0",
-    )
-    monkeypatch.setattr("llm_wiki_installer.toolchain.run", fakerun)
-
-    check_required_tools(("qmd", "rg", "fzf"))
-
-    assert ["npm", "install", "-g", "@tobilu/qmd"] not in calls
-    assert calls[-1] == ["qmd", "--version"]
-
-
 def test_check_required_tools_skips_unselected_tools(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    calls: list[list[str]] = []
-
     monkeypatch.setattr(
         "llm_wiki_installer.toolchain.shutil.which",
         lambda name: "/bin/git" if name == "git" else None,
     )
-    monkeypatch.setattr(
-        "llm_wiki_installer.toolchain.run",
-        lambda command, **_kwargs: calls.append(command),
-    )
 
     check_required_tools(())
-
-    assert not calls
 
 
 def test_tool_versions_marks_unselected_tools_as_skipped(
@@ -487,9 +326,6 @@ def test_tool_versions_marks_unselected_tools_as_skipped(
 
     versions = tool_versions(("rg",))
 
-    assert versions.node == "skipped"
-    assert versions.npm == "skipped"
-    assert versions.qmd == "skipped"
     assert versions.rg == "rg version"
     assert versions.fzf == "skipped"
 
@@ -536,13 +372,9 @@ def test_prepare_target_skips_git_init_when_repo_exists(
 
 
 def test_dynamic_template_text_matches_selected_tools() -> None:
-    assert "qmd --version" in qmd_postrun_check(True)
-    assert "skipping qmd" in qmd_postrun_check(False)
-    assert "qmd was not selected" in qmd_policy_text(False)
-    assert "Use `tobi/qmd`" in qmd_policy_text(True)
     assert retrieval_tools_text({"rg"}) == "rg"
-    assert retrieval_tools_text({"qmd", "rg", "fzf"}) == "qmd, rg, or fzf"
-    assert "qmd search" in search_commands_text({"qmd", "rg", "fzf"})
+    assert retrieval_tools_text({"rg", "fzf"}) == "rg, or fzf"
+    assert 'rg "keyword"' in search_commands_text({"rg", "fzf"})
     assert "Open wiki/index.md" in search_commands_text(set())
 
 
@@ -966,70 +798,6 @@ def test_install_upstream_skills_records_skipped_sources(
     assert not (tmp_path / ".agents/skills/upstream/kepano").exists()
 
 
-@pytest.mark.parametrize(
-    ("show_stdout", "expected_commands"),
-    [
-        (
-            "Name: knowledge-vault\nPath: /tmp/vault\n",
-            [["qmd", "update"], ["qmd", "embed"]],
-        ),
-        (
-            "Name: knowledge-vault\nPath: /old/vault\n",
-            [
-                ["qmd", "collection", "remove", "knowledge-vault"],
-                ["qmd", "collection", "add", "/tmp/vault", "--name", "knowledge-vault"],
-                ["qmd", "update"],
-                ["qmd", "embed"],
-            ],
-        ),
-        (
-            "",
-            [
-                ["qmd", "collection", "add", "/tmp/vault", "--name", "knowledge-vault"],
-                ["qmd", "update"],
-                ["qmd", "embed"],
-            ],
-        ),
-    ],
-)
-def test_initialize_qmd_branches(
-    show_stdout: str,
-    expected_commands: list[list[str]],
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    calls: list[list[str]] = []
-
-    def fakerun(
-        command: list[str],
-        cwd: Path | None = None,
-        capture: bool = False,
-        check: bool = True,
-        quiet: bool = False,
-        error: str | None = None,
-    ) -> subprocess.CompletedProcess[str]:
-        del cwd, quiet, error
-        assert (
-            check is False
-            if command == ["qmd", "collection", "show", "knowledge-vault"]
-            else True
-        )
-        calls.append(command)
-        if capture:
-            return subprocess.CompletedProcess(
-                command, 0, stdout=show_stdout, stderr=""
-            )
-        return subprocess.CompletedProcess(command, 0)
-
-    monkeypatch.setattr("llm_wiki_installer.qmd_setup.run", fakerun)
-
-    initialize_qmd(Path("/tmp/vault"))
-
-    assert calls[1:] == expected_commands
-    if "Path: /old/vault" in show_stdout:
-        assert "rebinding to /tmp/vault" in capsys.readouterr().out
-
-
 def test_run_install_orchestrates_installer_flow(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -1048,9 +816,6 @@ def test_run_install_orchestrates_installer_flow(
     monkeypatch.setattr(
         "llm_wiki_installer.installer.tool_versions",
         lambda _selected_tools: ToolVersions(
-            node="node-version",
-            npm="npm-version",
-            qmd="qmd-version",
             rg="rg-version",
             fzf="fzf-version",
         ),
@@ -1074,10 +839,6 @@ def test_run_install_orchestrates_installer_flow(
         "llm_wiki_installer.installer.write_generated_files",
         lambda _target, _context, force, **_kwargs: calls.append(f"write:{force}"),
     )
-    monkeypatch.setattr(
-        "llm_wiki_installer.installer.initialize_qmd",
-        lambda _target, **_kwargs: calls.append("qmd"),
-    )
 
     def fakerun(
         command: list[str],
@@ -1096,10 +857,9 @@ def test_run_install_orchestrates_installer_flow(
     run_install(Options(force=True, target_input=str(target)))
 
     assert calls == [
-        "tools:qmd,rg,fzf",
+        "tools:rg,fzf",
         "prepare",
         "write:True",
-        "qmd",
         "bash .scripts/postrun.sh",
         "bash .scripts/check-index-log.sh",
         "git --no-pager diff --stat",
@@ -1122,8 +882,8 @@ def test_generated_review_commands_disable_git_pager(
     assert "git --no-pager diff" in agents
 
 
-def test_run_install_skips_qmd_when_unselected(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+def test_run_install_with_no_selected_tools(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     calls: list[str] = []
     target = tmp_path / "vault"
@@ -1146,9 +906,6 @@ def test_run_install_skips_qmd_when_unselected(
     monkeypatch.setattr(
         "llm_wiki_installer.installer.tool_versions",
         lambda _selected_tools: ToolVersions(
-            node="skipped",
-            npm="skipped",
-            qmd="skipped",
             rg="skipped",
             fzf="skipped",
         ),
@@ -1173,16 +930,10 @@ def test_run_install_skips_qmd_when_unselected(
         lambda _target, _context, force, **_kwargs: calls.append(f"write:{force}"),
     )
     monkeypatch.setattr(
-        "llm_wiki_installer.installer.initialize_qmd",
-        lambda _target, **_kwargs: calls.append("qmd"),
-    )
-    monkeypatch.setattr(
         "llm_wiki_installer.installer.run",
         lambda command, **_kwargs: calls.append(" ".join(command)),
     )
 
     run_install(Options(force=False, target_input=str(target), interactive=False))
 
-    assert "qmd" not in calls
     assert calls[:3] == ["tools:", "prepare", "write:False"]
-    assert "qmd was not selected" in capsys.readouterr().out

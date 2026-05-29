@@ -14,9 +14,6 @@ def test_template_context_maps_versions_and_upstream_installs() -> None:
         Path("/tmp/vault"),
         "2026-05-28",
         ToolVersions(
-            node="v22.3.0",
-            npm="10.8.0",
-            qmd="qmd 1.2.3",
             rg="ripgrep 14.1.0",
             fzf="0.56.0",
         ),
@@ -28,7 +25,7 @@ def test_template_context_maps_versions_and_upstream_installs() -> None:
                 "https://example.test/kepano", "b" * 40, "b" * 40, 2
             ),
         },
-        ("qmd", "rg", "fzf"),
+        ("rg", "fzf"),
     )
 
     assert context["TARGET"] == "/tmp/vault"
@@ -36,7 +33,6 @@ def test_template_context_maps_versions_and_upstream_installs() -> None:
     assert context["AR9AV_PINNED_COMMIT"] == "a" * 40
     assert context["AR9AV_COMMIT"] == "a" * 40
     assert context["KEPANO_COUNT"] == "2"
-    assert context["QMD_RESULT"] == "installed"
     assert context["TARGET_JSON"] == '"/tmp/vault"'
 
 
@@ -45,9 +41,6 @@ def test_template_context_records_skipped_tools_and_skills() -> None:
         Path("/tmp/vault"),
         "2026-05-28",
         ToolVersions(
-            node="skipped",
-            npm="skipped",
-            qmd="skipped",
             rg="ripgrep 14.1.0",
             fzf="skipped",
         ),
@@ -62,11 +55,9 @@ def test_template_context_records_skipped_tools_and_skills() -> None:
         ("rg",),
     )
 
-    assert context["QMD_RESULT"] == "skipped"
     assert context["RG_RESULT"] == "installed"
     assert context["FZF_RESULT"] == "skipped"
     assert context["AR9AV_RESULT"] == "skipped"
-    assert "qmd was not selected" in context["QMD_POLICY"]
     assert "Ar9av/obsidian-wiki` was not selected" in context["UPSTREAM_SKILL_POLICY"]
 
 
@@ -76,7 +67,6 @@ def test_render_template_replaces_context_tokens(
     rendered = render_template("skill-manifest.md", template_context)
 
     assert "Generated: 2026-05-28" in rendered
-    assert "| Collection Path | /tmp/vault |" in rendered
     assert "| Name | llm-wiki-installer |" in rendered
     assert "third-party upstream artifact" in rendered
     assert (

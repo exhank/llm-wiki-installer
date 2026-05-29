@@ -5,7 +5,7 @@ Markdown 知识库仓库。生成后的 vault 使用 Git 审核变更，用 `raw
 用户确认的原始证据，用 `wiki/` 保存长期维护的结构化知识。
 
 本仓库不是知识库本身，而是安装器。安装器会把固定目录、AGENTS 策略、辅助
-脚本、qmd 配置和可选上游 Skills 写入另一个目标仓库。
+脚本和可选上游 Skills 写入另一个目标仓库。
 
 ## Quick Start
 
@@ -55,7 +55,7 @@ inbox -> raw -> wiki -> query -> fileback -> review -> export/archive
 --force              覆盖目标 vault 中的生成文件
 --no-interactive     不显示交互选择器，使用默认全选
 --yes                --no-interactive 的别名
---tools LIST         选择 qmd,rg,fzf, all 或 none
+--tools LIST         选择 rg,fzf, all 或 none
 --skills LIST        选择 Ar9av,kepano, all 或 none
 --no-install-tools   缺少已选择工具时直接失败，不自动安装
 --offline            禁止网络 bootstrap 操作
@@ -67,7 +67,7 @@ inbox -> raw -> wiki -> query -> fileback -> review -> export/archive
 
 ```bash
 bash install.sh --dry-run --json /path/to/knowledge-vault
-bash install.sh --tools qmd,rg --skills kepano /path/to/knowledge-vault
+bash install.sh --tools rg --skills kepano /path/to/knowledge-vault
 bash install.sh --offline --tools rg --skills none /path/to/knowledge-vault
 ```
 
@@ -79,8 +79,7 @@ bash install.sh --offline --tools rg --skills none /path/to/knowledge-vault
 可能发生的网络操作只有三类：
 
 - streamed install 克隆本安装器的指定 release ref；
-- 克隆用户选择的、已 pin commit 的上游 Skill 来源；
-- 当选择 qmd 且本机缺少 qmd 时，通过 npm 安装 `@tobilu/qmd`。
+- 克隆用户选择的、已 pin commit 的上游 Skill 来源。
 
 使用 `--dry-run` 可以先查看计划；使用 `--offline` 可以关闭网络 bootstrap
 操作。

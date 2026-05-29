@@ -99,16 +99,10 @@ def template_context(
         "TARGET": str(target),
         "INSTALLER_VERSION": __version__,
         "INSTALLER_NAME": "llm-wiki-installer",
-        "NODE_VERSION": versions.node,
-        "NPM_VERSION": versions.npm,
-        "QMD_VERSION": versions.qmd,
         "RG_VERSION": versions.rg,
         "FZF_VERSION": versions.fzf,
-        "QMD_RESULT": "installed" if "qmd" in selected else "skipped",
         "RG_RESULT": "installed" if "rg" in selected else "skipped",
         "FZF_RESULT": "installed" if "fzf" in selected else "skipped",
-        "QMD_POLICY": qmd_policy_text("qmd" in selected),
-        "QMD_POSTRUN_CHECK": qmd_postrun_check("qmd" in selected),
         "RETRIEVAL_TOOLS": retrieval_tools_text(selected),
         "SEARCH_COMMANDS": search_commands_text(selected),
         "UPSTREAM_SKILL_POLICY": upstream_skill_policy_text(upstream),
@@ -126,47 +120,8 @@ def template_context(
     }
 
 
-def qmd_policy_text(qmd_selected: bool) -> str:
-    if qmd_selected:
-        return "\n".join(
-            (
-                "- Use `tobi/qmd`.",
-                "- Package: `@tobilu/qmd`.",
-                "- Install automatically with `npm install -g @tobilu/qmd` if `qmd` is missing.",
-                "- Collection name: `knowledge-vault`.",
-                "- Collection path: repository root.",
-                "- Index scope: the whole vault.",
-                "- If qmd installation, version detection, collection initialization, "
-                "update, or embed fails, stop and report failure.",
-            )
-        )
-    return "\n".join(
-        (
-            "- qmd was not selected during installation.",
-            "- Do not assume qmd commands are available in this vault.",
-            "- Use installed retrieval tools recorded in `.agents/skill-manifest.md`.",
-            "- Re-run the installer and select qmd if Markdown collection indexing is required.",
-        )
-    )
-
-
-def qmd_postrun_check(qmd_selected: bool) -> str:
-    if not qmd_selected:
-        return (
-            'echo "qmd was not selected during install; skipping qmd post-run check."'
-        )
-    return "\n".join(
-        (
-            'command -v qmd >/dev/null || fail "qmd is required but not found."',
-            'qmd --version >/dev/null || fail "qmd exists but qmd --version failed."',
-        )
-    )
-
-
 def retrieval_tools_text(selected_tools: set[str]) -> str:
     labels = []
-    if "qmd" in selected_tools:
-        labels.append("qmd")
     if "rg" in selected_tools:
         labels.append("rg")
     if "fzf" in selected_tools:
@@ -180,8 +135,6 @@ def retrieval_tools_text(selected_tools: set[str]) -> str:
 
 def search_commands_text(selected_tools: set[str]) -> str:
     commands = []
-    if "qmd" in selected_tools:
-        commands.append('qmd search "keyword"')
     if "rg" in selected_tools:
         commands.append('rg "keyword" wiki raw inbox outputs archive')
     if "fzf" in selected_tools:

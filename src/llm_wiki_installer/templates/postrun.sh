@@ -73,8 +73,6 @@ if changed_paths raw | grep -q .; then
   fi
 fi
 
-{{QMD_POSTRUN_CHECK}}
-
 echo "-- Diff stat --"
 git --no-pager diff --stat || true
 
