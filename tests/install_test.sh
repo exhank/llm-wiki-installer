@@ -408,6 +408,7 @@ test_full_install_generates_expected_layout() {
 
   assert_dir "$target/inbox"
   assert_dir "$target/raw"
+  assert_dir "$target/attachments"
   assert_dir "$target/wiki/maps"
   assert_dir "$target/outputs"
   assert_dir "$target/archive"

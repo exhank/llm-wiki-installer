@@ -35,6 +35,7 @@ uvx --python 3.13 llm-wiki-installer==<version> --no-interactive /path/to/knowle
 ```text
 inbox/      待处理输入
 raw/        用户确认过的原始证据
+attachments/ Obsidian 默认附件目录
 wiki/       长期维护的 Markdown 知识
 outputs/    当前交付物
 archive/    不活跃的旧交付物

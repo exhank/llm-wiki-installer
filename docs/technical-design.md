@@ -19,6 +19,7 @@ Core layers:
 ```text
 inbox/    = unprocessed input buffer; agents may write here
 raw/      = user-approved source evidence layer; read-only for agents by default
+attachments/ = default Obsidian attachment folder for embedded media
 wiki/     = long-term Markdown Wiki compiled by LLMs
 outputs/  = current deliverables, exports, and externally facing artifacts
 archive/  = old outputs archive; not a knowledge archive
@@ -94,6 +95,7 @@ retrieval accelerator = wiki/index.md + wiki/maps/ + rg + fzf
 ./
 ├─ inbox/                       # unprocessed input; low-friction capture buffer; agents may write
 ├─ raw/                         # user-approved original sources; immutable evidence layer; read-only for agents by default
+├─ attachments/                 # default Obsidian attachment folder for embedded media
 ├─ wiki/                        # long-term Markdown Wiki compiled by LLMs
 │  ├─ maps/                     # topic entry points: MOC / Topic Map / Project Map / Learning Map
 │  ├─ index.md                  # global machine/human entry point; maintained automatically by agents
@@ -140,6 +142,7 @@ examples/
 | --- | --- | --- | --- |
 | `inbox/` | unprocessed input, temporary capture, material awaiting judgment | may add and organize | may be cleaned; may move into raw/wiki |
 | `raw/` | user-approved original evidence | read-only by default; deletable only with user authorization | immutable by default; tracked by Git by default |
+| `attachments/` | Obsidian embedded media attachments | may write when embedding media in wiki pages | tracked by Git by default; evidence-bearing originals still belong in raw/ |
 | `wiki/` | long-term knowledge layer compiled by LLMs | may write autonomously within clear scope | long-term maintenance; continuous evolution |
 | `wiki/maps/` | topic entry points; does not copy body text | writable | evolves with topics |
 | `wiki/index.md` | global entry point for machines and humans | maintained automatically by agents | must remain consistent with wiki discoverability |

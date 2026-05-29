@@ -51,6 +51,7 @@ The setup wrapper must generate these paths at repository root:
 ./
 ├─ inbox/
 ├─ raw/
+├─ attachments/
 ├─ wiki/
 │  ├─ maps/
 │  ├─ index.md
@@ -488,6 +489,7 @@ The goal is to maintain a durable Markdown wiki compiled from user-approved raw 
 
 - `inbox/` is the low-friction unprocessed capture buffer. Agents may write to it.
 - `raw/` contains user-approved source material. Agents treat it as read-only by default.
+- `attachments/` is the default Obsidian attachment folder for embedded media.
 - `wiki/` contains compiled long-term Markdown knowledge.
 - `wiki/maps/` contains topic, project, research, and learning maps.
 - `wiki/index.md` is the global machine-readable and human-readable index.
@@ -980,6 +982,7 @@ This is an LLM-native Obsidian Markdown knowledge vault.
 
 - `inbox/` is the capture buffer.
 - `raw/` is the user-approved evidence layer.
+- `attachments/` is the default Obsidian attachment folder.
 - `wiki/` is the compiled long-term Markdown knowledge layer.
 - `wiki/index.md` is the global entry.
 - `wiki/maps/` contains topic and project maps.
@@ -992,6 +995,7 @@ This is an LLM-native Obsidian Markdown knowledge vault.
 ```text
 inbox/     unprocessed input
 raw/       user-approved immutable source material
+attachments/ default Obsidian attachments
 wiki/      compiled long-term Markdown knowledge
 outputs/   final deliverables
 archive/   inactive old outputs only

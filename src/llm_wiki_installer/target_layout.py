@@ -14,6 +14,7 @@ from .upstream_skills import UpstreamInstall
 REQUIRED_DIRECTORIES = (
     "inbox",
     "raw",
+    "attachments",
     "wiki/maps",
     "outputs",
     "archive",

@@ -6,6 +6,7 @@ This is an LLM-native Obsidian Markdown knowledge vault.
 
 - `inbox/` is the capture buffer.
 - `raw/` is the user-approved evidence layer.
+- `attachments/` is the default Obsidian attachment folder.
 - `wiki/` is the compiled long-term Markdown knowledge layer.
 - `wiki/index.md` is the global entry.
 - `wiki/maps/` contains topic and project maps.
@@ -18,6 +19,7 @@ This is an LLM-native Obsidian Markdown knowledge vault.
 ```text
 inbox/     unprocessed input
 raw/       user-approved immutable source material
+attachments/ default Obsidian attachments
 wiki/      compiled long-term Markdown knowledge
 outputs/   final deliverables
 archive/   inactive old outputs only

@@ -15,6 +15,7 @@ The goal is to maintain a durable Markdown wiki compiled from user-approved raw 
 
 - `inbox/` is the low-friction unprocessed capture buffer. Agents may write to it.
 - `raw/` contains user-approved source material. Agents treat it as read-only by default.
+- `attachments/` is the default Obsidian attachment folder for embedded media.
 - `wiki/` contains compiled long-term Markdown knowledge.
 - `wiki/maps/` contains topic, project, research, and learning maps.
 - `wiki/index.md` is the global machine-readable and human-readable index.

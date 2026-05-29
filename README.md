@@ -76,6 +76,7 @@ contract:
 ```text
 knowledge-vault/
 +-- raw/                 # user-approved source evidence
++-- attachments/         # Obsidian default attachment folder
 +-- wiki/                # durable compiled knowledge
 |   +-- index.md         # retrieval entry point
 |   +-- log.md           # change log
@@ -215,6 +216,7 @@ The target vault receives:
 ```text
 inbox/
 raw/
+attachments/
 wiki/
 outputs/
 archive/
