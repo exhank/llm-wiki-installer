@@ -47,3 +47,12 @@ def test_release_workflow_uses_pypi_trusted_publishing() -> None:
     assert "pypa/gh-action-pypi-publish@" in release_workflow
     assert "password:" not in release_workflow
     assert "api-token" not in release_workflow
+
+
+def test_release_workflow_creates_release_with_explicit_repository() -> None:
+    release_workflow = (REPO_ROOT / ".github" / "workflows" / "release.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert 'gh release create "${GITHUB_REF_NAME}"' in release_workflow
+    assert '--repo "${GITHUB_REPOSITORY}"' in release_workflow
