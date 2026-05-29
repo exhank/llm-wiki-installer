@@ -88,6 +88,8 @@ knowledge-vault/
 +-- archives/             # retired material
 +-- schema/              # schema and policy documents
 |   +-- log.md           # wiki/log.jsonl event schemas
+|   +-- wiki-page.md     # wiki/*.md page template
+|   +-- map.md           # wiki/maps/*.md map template
 +-- AGENTS.md            # runtime policy for agents
 +-- .agents/
 |   +-- skills/          # flattened pinned third-party Skill artifacts
@@ -222,6 +224,7 @@ attachments/
 wiki/
 outputs/
 archives/
+schema/
 AGENTS.md
 README.md
 .agents/skills/

@@ -7,6 +7,8 @@ when the package version in `src/llm_wiki_installer/__init__.py` changes.
 
 ## 0.1.7 - 2026-05-29
 
+- Generate `schema/wiki-page.md` and `schema/map.md` so detailed page and map
+  templates are progressively disclosed from the generated `AGENTS.md`.
 - Generate `schema/log.md` for detailed `wiki/log.jsonl` event schemas and
   keep generated `AGENTS.md` focused on high-level runtime log rules.
 - Create an empty generated `schema/` directory and document the schema layer in

@@ -12,6 +12,8 @@ This is the global entry point for the knowledge vault.
 - `wiki/tags.md` - canonical flat kebab-case tag registry.
 - `wiki/log.jsonl` - append-only JSONL audit ledger.
 - `schema/log.md` - detailed log event schemas for `wiki/log.jsonl`.
+- `schema/wiki-page.md` - detailed template schema for `wiki/*.md`.
+- `schema/map.md` - detailed template schema for `wiki/maps/*.md`.
 
 ## Current Pages
 

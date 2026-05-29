@@ -32,7 +32,7 @@ The generated result must satisfy:
 ```text
 technical design is concise and stable
 runtime rules are written into AGENTS.md
-templates are written into AGENTS.md and this guide
+template details are progressively disclosed through schema/*.md
 wiki/tags.md is generated as the canonical flat kebab-case tag registry
 scripts are executable
 selected upstream Skills are installed
@@ -58,7 +58,9 @@ The setup wrapper must generate these paths at repository root:
 ├─ outputs/
 ├─ archives/
 ├─ schema/
-│  └─ log.md
+│  ├─ log.md
+│  ├─ wiki-page.md
+│  └─ map.md
 ├─ AGENTS.md
 ├─ README.md
 ├─ .agents/
@@ -473,79 +475,24 @@ When answering questions about the vault:
 - Any `raw/` change must update `wiki/log.jsonl`.
 - `ALLOW_RAW_CHANGE=1` is only a script-level explicit switch; it is not user authorization.
 
-## Wiki page template
+## Template schemas
 
-New `wiki/*.md` pages should use:
+Use the detailed template schemas in `schema/` only when creating or
+substantially reshaping those file types:
 
-```yaml
----
-title: ""
-tags: []
-created: YYYY-MM-DD
-updated: YYYY-MM-DD
----
-```
+- Use `schema/wiki-page.md` for new or substantially rewritten `wiki/*.md`
+  pages, including frontmatter, body structure, and tag rules.
+- Use `schema/map.md` for new or substantially rewritten `wiki/maps/*.md`
+  pages.
+- Use `schema/log.md` for `wiki/log.jsonl` event schemas and examples.
 
-All new and edited wiki pages must follow `wiki/tags.md`. Use YAML `tags` lists
-with flat `kebab-case` values, without `#` prefixes or nested slash tags.
-Before introducing a tag, check `wiki/tags.md` and existing wiki frontmatter.
-Reuse an accurate existing tag whenever possible. If a new tag is needed, add it
-to `wiki/tags.md` in the same change.
+All new and edited wiki pages must follow `wiki/tags.md`. Reuse an accurate
+existing tag whenever possible. If a new tag is needed, add it to
+`wiki/tags.md` in the same change.
 
-Small local tag additions are normal page edits. Vault-wide tag redesigns are
-schema/policy migrations: update `wiki/tags.md`, affected page frontmatter,
-`wiki/index.md` when navigation changes, and append a `schema-update` entry to
-`wiki/log.jsonl`.
-
-Recommended body:
-
-```md
-# Title
-
-## Summary
-
-## Key Points
-
-## Evidence / Sources
-
-- source: `raw/path/to/source`
-  claim: ""
-  note: ""
-
-## Open Questions
-
-## Related
-```
-
-## Map template
-
-New `wiki/maps/*.md` pages should use:
-
-```yaml
----
-title: ""
-tags:
-  - map
-created: YYYY-MM-DD
-updated: YYYY-MM-DD
----
-```
-
-Recommended body:
-
-```md
-# Map Title
-
-## Scope
-
-## Core Pages
-
-## Source Pages
-
-## Open Questions
-
-## Related Outputs
-```
+Vault-wide tag redesigns are schema/policy migrations: update `wiki/tags.md`,
+affected page frontmatter, `wiki/index.md` when navigation changes, and append
+a `schema-update` entry to `wiki/log.jsonl`.
 
 ## Naming rules
 
@@ -584,7 +531,43 @@ If a check fails, fix the issue and rerun the checks.
 
 ---
 
-## 7. `schema/log.md` Generation Template
+## 7. `schema/wiki-page.md` Generation Template
+
+Generate path:
+
+```text
+schema/wiki-page.md
+```
+
+The file is a Markdown schema document for creating or substantially reshaping
+`wiki/*.md` pages. It must include:
+
+- frontmatter with `title`, `tags`, `created`, and `updated`
+- flat `kebab-case` tag rules that point to `wiki/tags.md`
+- guidance that vault-wide tag redesigns are schema/policy migrations
+- the recommended body sections: Summary, Key Points, Evidence / Sources, Open
+  Questions, and Related
+
+---
+
+## 8. `schema/map.md` Generation Template
+
+Generate path:
+
+```text
+schema/map.md
+```
+
+The file is a Markdown schema document for creating or substantially reshaping
+`wiki/maps/*.md` pages. It must include:
+
+- frontmatter with `title`, `tags: [map]`, `created`, and `updated`
+- the recommended body sections: Scope, Core Pages, Source Pages, Open
+  Questions, and Related Outputs
+
+---
+
+## 9. `schema/log.md` Generation Template
 
 Generate path:
 
@@ -611,7 +594,7 @@ Keep the examples synchronized with the log entry types accepted by
 
 ---
 
-## 8. `.scripts/postrun.sh` Generation Template
+## 10. `.scripts/postrun.sh` Generation Template
 
 Generate path:
 
@@ -705,7 +688,7 @@ echo "Post-run OK. Review diff before commit."
 
 ---
 
-## 9. `.scripts/check-index-log.sh` Generation Template
+## 11. `.scripts/check-index-log.sh` Generation Template
 
 Generate path:
 
@@ -805,7 +788,7 @@ echo "Index/log checks OK."
 
 ---
 
-## 10. `.gitignore` Generation Template
+## 12. `.gitignore` Generation Template
 
 Generate `.gitignore` from `src/llm_wiki_installer/templates/gitignore`.
 
@@ -851,7 +834,7 @@ template tests together.
 
 ---
 
-## 11. README.md Generation Template
+## 13. README.md Generation Template
 
 ````md
 # Knowledge Vault
@@ -869,6 +852,8 @@ This is an LLM-native Obsidian Markdown knowledge vault.
 - `wiki/tags.md` is the canonical flat kebab-case tag registry.
 - `wiki/log.jsonl` is the append-only JSONL audit ledger.
 - `schema/log.md` contains detailed `wiki/log.jsonl` event schemas.
+- `schema/wiki-page.md` contains the detailed `wiki/*.md` page template.
+- `schema/map.md` contains the detailed `wiki/maps/*.md` map template.
 - `outputs/` contains current deliverables.
 - `archives/` contains inactive old outputs.
 - `schema/` is reserved for schema and policy documents that guide LLM maintenance.
@@ -885,6 +870,8 @@ outputs/   final deliverables
 archives/   inactive old outputs only
 schema/
   log.md   wiki/log.jsonl event schemas
+  wiki-page.md wiki/*.md page template
+  map.md   wiki/maps/*.md map template
 ```
 
 ## Common operations
@@ -943,7 +930,7 @@ git commit -m "Update knowledge vault"
 
 ---
 
-## 12. `.codex/config.toml` Generation Requirements
+## 14. `.codex/config.toml` Generation Requirements
 
 An empty file or minimal config is acceptable, but it must not contain agent-specific rules that override AGENTS.md.
 
@@ -954,7 +941,7 @@ An empty file or minimal config is acceptable, but it must not contain agent-spe
 
 ---
 
-## 13. `.codex/hooks.json` Generation Requirements
+## 15. `.codex/hooks.json` Generation Requirements
 
 An empty hook configuration is acceptable, but it must be a valid Codex hooks
 configuration file.
@@ -982,7 +969,7 @@ bash .scripts/check-index-log.sh
 
 ---
 
-## 14. Unit Test Rules
+## 16. Unit Test Rules
 
 The setup wrapper must run full verification:
 
@@ -991,7 +978,7 @@ The setup wrapper must run full verification:
 2. Generate all fixed artifacts.
 3. Verify the directory structure.
 4. Verify forbidden paths do not exist.
-5. Verify AGENTS.md contains the required frontmatter, tag rules, and link to schema/log.md.
+5. Verify AGENTS.md contains high-level tag rules and links to schema/log.md, schema/wiki-page.md, and schema/map.md.
 6. Verify README.md contains the operations guide, design idea, and directory explanation.
 7. Verify .scripts/postrun.sh is executable.
 8. Verify .scripts/check-index-log.sh is executable.
@@ -1011,7 +998,7 @@ Python installer unit tests should use pytest with project-level configuration i
 
 ---
 
-## 15. Repeatable Generation Rules
+## 17. Repeatable Generation Rules
 
 The generator must follow:
 
@@ -1041,7 +1028,7 @@ creating tests/ fixtures/ examples/
 
 ---
 
-## 16. Final Verification
+## 18. Final Verification
 
 Before final output, confirm:
 
@@ -1051,6 +1038,9 @@ README.md exists
 wiki/index.md exists
 wiki/tags.md exists
 wiki/log.jsonl exists
+schema/log.md exists
+schema/wiki-page.md exists
+schema/map.md exists
 .scripts/postrun.sh exists and executable
 .scripts/check-index-log.sh exists and executable
 .obsidian/app.json exists

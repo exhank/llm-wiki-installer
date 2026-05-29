@@ -254,6 +254,8 @@ def test_run_install_dry_run_json_outputs_plan(
     assert plan["selectedSkills"] == []
     assert "schema" in plan["wouldCreateDirectories"]
     assert "schema/log.md" in plan["wouldWriteFiles"]
+    assert "schema/wiki-page.md" in plan["wouldWriteFiles"]
+    assert "schema/map.md" in plan["wouldWriteFiles"]
 
 
 def test_run_install_offline_dry_run_defaults_to_no_upstream_skills(
@@ -467,6 +469,8 @@ def test_write_generated_files_preserves_existing_files_without_force(
     assert (tmp_path / "AGENTS.md").is_file()
     assert (tmp_path / "wiki/tags.md").is_file()
     assert (tmp_path / "schema/log.md").is_file()
+    assert (tmp_path / "schema/wiki-page.md").is_file()
+    assert (tmp_path / "schema/map.md").is_file()
     assert not (tmp_path / ".agents/skill-manifest.md").exists()
     assert not (tmp_path / ".agents/skill-manifest.json").exists()
     assert (tmp_path / ".codex/hooks.json").is_file()
@@ -896,15 +900,23 @@ def test_generated_tag_policy_removes_frontmatter_type(
     template_context: dict[str, str],
 ) -> None:
     agents = render_template("AGENTS.md", template_context)
+    wiki_page_schema = render_template("schema/wiki-page.md", template_context)
     tags = render_template("wiki-tags.md", template_context)
 
     assert "type: source | entity" not in agents
     assert "type: map" not in agents
-    assert "tags: []" in agents
+    assert "tags: []" not in agents
     assert "wiki/tags.md" in agents
     assert "kebab-case" in agents
-    assert "nested slash tags" in agents
-    assert "add it\nto `wiki/tags.md`" in agents
+    assert "nested slash tags" not in agents
+    assert "add it\nto `wiki/tags.md`" not in agents
+
+    assert "type: source | entity" not in wiki_page_schema
+    assert "tags: []" in wiki_page_schema
+    assert "wiki/tags.md" in wiki_page_schema
+    assert "kebab-case" in wiki_page_schema
+    assert "nested slash tags" in wiki_page_schema
+    assert "add it\nto `wiki/tags.md`" in wiki_page_schema
 
     assert "type: source | entity" not in tags
     assert "Use flat tags only; do not use nested tags with `/`." in tags
@@ -925,6 +937,26 @@ def test_generated_log_schema_uses_progressive_disclosure(
     assert "# Log Schema" in log_schema
     assert '"type":"ingest"' in log_schema
     assert '"type":"schema-update"' in log_schema
+
+
+def test_generated_page_templates_use_progressive_disclosure(
+    template_context: dict[str, str],
+) -> None:
+    agents = render_template("AGENTS.md", template_context)
+    wiki_page_schema = render_template("schema/wiki-page.md", template_context)
+    map_schema = render_template("schema/map.md", template_context)
+
+    assert "Use `schema/wiki-page.md`" in agents
+    assert "Use `schema/map.md`" in agents
+    assert "## Wiki page template" not in agents
+    assert "## Map template" not in agents
+    assert "source: `raw/path/to/source`" not in agents
+    assert "## Related Outputs" not in agents
+
+    assert "# Wiki Page Schema" in wiki_page_schema
+    assert "source: `raw/path/to/source`" in wiki_page_schema
+    assert "# Map Schema" in map_schema
+    assert "## Related Outputs" in map_schema
 
 
 def test_run_install_with_no_selected_tools(

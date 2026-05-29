@@ -104,7 +104,9 @@ retrieval accelerator = wiki/index.md + wiki/maps/ + rg + fzf
 ├─ outputs/                     # current final deliverables, exports, externally facing artifacts
 ├─ archives/                     # old outputs that are not currently needed; not a knowledge archive
 ├─ schema/                       # schema and policy documents for LLM wiki maintenance
-│  └─ log.md                     # detailed wiki/log.jsonl event schemas
+│  ├─ log.md                     # detailed wiki/log.jsonl event schemas
+│  ├─ wiki-page.md               # detailed wiki/*.md page template
+│  └─ map.md                     # detailed wiki/maps/*.md map template
 ├─ AGENTS.md                    # repository-level canonical agent policy
 ├─ README.md                    # human entry point: operations guide, design idea, directory explanation
 ├─ .agents/
@@ -153,6 +155,8 @@ examples/
 | `archives/` | cold storage for old outputs | writable within a clear archive task | does not carry knowledge structure |
 | `schema/` | schema and policy documents that define wiki structure, conventions, and workflows | writable within a clear schema/policy update task | co-evolves with the user and LLM as domain conventions mature |
 | `schema/log.md` | detailed `wiki/log.jsonl` event schemas and examples | writable within a clear schema/policy update task | referenced by `AGENTS.md`; keeps detailed log policy progressively disclosed |
+| `schema/wiki-page.md` | detailed `wiki/*.md` page template, frontmatter, body, and tag rules | writable within a clear schema/policy update task | referenced by `AGENTS.md`; keeps page template policy progressively disclosed |
+| `schema/map.md` | detailed `wiki/maps/*.md` map template and body structure | writable within a clear schema/policy update task | referenced by `AGENTS.md`; keeps map template policy progressively disclosed |
 | `.agents/skills/` | selected upstream Skills, flattened by skill name | maintained by setup | generated during setup/update |
 | `.codex/config.toml` | Codex adapter config | maintained by adapter | does not carry long-term rules |
 | `.codex/hooks.json` | Codex project hook config | maintained by adapter | does not carry long-term rules |

@@ -16,6 +16,8 @@ This is an LLM-native Obsidian Markdown knowledge vault.
 - `archives/` contains inactive old outputs.
 - `schema/` is reserved for schema and policy documents that guide LLM maintenance.
 - `schema/log.md` defines the detailed `wiki/log.jsonl` event schemas.
+- `schema/wiki-page.md` defines the detailed `wiki/*.md` page template.
+- `schema/map.md` defines the detailed `wiki/maps/*.md` map template.
 
 ## Directory guide
 
@@ -29,6 +31,8 @@ outputs/   final deliverables
 archives/   inactive old outputs only
 schema/
   log.md   wiki/log.jsonl event schemas
+  wiki-page.md wiki/*.md page template
+  map.md   wiki/maps/*.md map template
 ```
 
 ## Common operations

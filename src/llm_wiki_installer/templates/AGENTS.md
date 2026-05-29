@@ -50,77 +50,24 @@ When answering questions about the vault:
 - Any `raw/` change must update `wiki/log.jsonl`.
 - `ALLOW_RAW_CHANGE=1` is only a script-level explicit switch; it is not user authorization.
 
-## Wiki page template
+## Template schemas
 
-New `wiki/*.md` pages should use:
+Use the detailed template schemas in `schema/` only when creating or
+substantially reshaping those file types:
 
-```yaml
----
-title: ""
-tags: []
-created: YYYY-MM-DD
-updated: YYYY-MM-DD
----
-```
+- Use `schema/wiki-page.md` for new or substantially rewritten `wiki/*.md`
+  pages, including frontmatter, body structure, and tag rules.
+- Use `schema/map.md` for new or substantially rewritten `wiki/maps/*.md`
+  pages.
+- Use `schema/log.md` for `wiki/log.jsonl` event schemas and examples.
 
-All new and edited wiki pages must follow `wiki/tags.md`. Use YAML `tags` lists
-with flat `kebab-case` values, without `#` prefixes or nested slash tags.
-Before introducing a tag, check `wiki/tags.md` and existing wiki frontmatter.
-Reuse an accurate existing tag whenever possible. If a new tag is needed, add it
-to `wiki/tags.md` in the same change.
+All new and edited wiki pages must follow `wiki/tags.md`. Reuse an accurate
+existing tag whenever possible. If a new tag is needed, add it to
+`wiki/tags.md` in the same change.
 
-Small local tag additions are normal page edits. Vault-wide tag redesigns are
-schema/policy migrations: update `wiki/tags.md`, affected page frontmatter,
-`wiki/index.md` when navigation changes, and append a `schema-update` entry to
-`wiki/log.jsonl`.
-
-Recommended body:
-
-```md
-# Title
-
-## Summary
-
-## Key Points
-
-## Evidence / Sources
-
-- source: `raw/path/to/source`
-
-## Open Questions
-
-## Related
-```
-
-## Map template
-
-New `wiki/maps/*.md` pages should use:
-
-```yaml
----
-title: ""
-tags:
-  - map
-created: YYYY-MM-DD
-updated: YYYY-MM-DD
----
-```
-
-Recommended body:
-
-```md
-# Map Title
-
-## Scope
-
-## Core Pages
-
-## Source Pages
-
-## Open Questions
-
-## Related Outputs
-```
+Vault-wide tag redesigns are schema/policy migrations: update `wiki/tags.md`,
+affected page frontmatter, `wiki/index.md` when navigation changes, and append
+a `schema-update` entry to `wiki/log.jsonl`.
 
 ## Naming rules
 
