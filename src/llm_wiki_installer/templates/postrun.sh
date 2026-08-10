@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Hard boundary checks only. Everything advisory lives in check-index-log.sh.
+
 fail() {
   echo "ERROR: $1" >&2
   exit 1
@@ -18,59 +20,21 @@ if [ -d ".codex/rules" ]; then
   fail ".codex/rules/ must not exist."
 fi
 
-if git status --porcelain=v1 -- .codex/rules | grep -q .; then
-  fail "Forbidden paths are present in git status."
-fi
-
-for plugin_asset in \
-  .obsidian/plugins/obsidian-git/main.js \
-  .obsidian/plugins/obsidian-git/manifest.json \
-  .obsidian/plugins/obsidian-git/styles.css \
-  .obsidian/plugins/obsidian-git/data.json \
-  .obsidian/plugins/obsidian-git/obsidian_askpass.sh
-do
-  if [ ! -f "$plugin_asset" ]; then
-    fail "Required Obsidian plugin asset missing: $plugin_asset"
-  fi
-done
-
-unauthorized_skill_paths="$(
-  find . \
-    \( -path './.git' -o -path './node_modules' -o -path './.cache' \) -prune -o \
-    -name SKILL.md -print \
-    | grep -v -E '^\./\.agents/skills/[^/]+/SKILL\.md$' \
-    || true
-)"
-
-if [ -n "$unauthorized_skill_paths" ]; then
-  printf "%s\n" "$unauthorized_skill_paths" >&2
-  fail "Unauthorized SKILL.md found outside .agents/skills/<skill-name>/."
-fi
-
-bad_generated_names="$(
-  changed_paths wiki outputs .scripts .codex \
-    | grep -E '(^|/)(New Note|untitled|tmp|note)\.md$|[[:space:]]|[A-Z]' \
-    || true
-)"
-
-if [ -n "$bad_generated_names" ]; then
-  printf "%s\n" "$bad_generated_names" >&2
-  fail "Generated wiki/output/script/config-description filenames must use lowercase kebab-case."
-fi
-
-if git status --porcelain=v1 | grep -q .; then
-  echo "-- Changed files --"
-  git status --short
-fi
-
-if changed_paths raw | grep -q .; then
+raw_changes="$(changed_paths raw | grep -v -E '^raw/\.gitkeep$' || true)"
+if [ -n "$raw_changes" ]; then
   if [ "${ALLOW_RAW_CHANGE:-0}" != "1" ]; then
+    printf "%s\n" "$raw_changes" >&2
     fail "raw/ changed. Set ALLOW_RAW_CHANGE=1 only when the user explicitly authorized this raw change."
   fi
 
   if ! changed_paths wiki/log.jsonl | grep -q .; then
     fail "raw/ changed but wiki/log.jsonl was not updated."
   fi
+fi
+
+if git status --porcelain=v1 | grep -q .; then
+  echo "-- Changed files --"
+  git status --short
 fi
 
 echo "-- Diff stat --"

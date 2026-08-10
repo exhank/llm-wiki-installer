@@ -32,14 +32,16 @@ UPSTREAM_SKILL_OPTIONS = (
     (
         "Ar9av",
         "Ar9av/obsidian-wiki",
-        "Upstream Obsidian wiki skills copied as third-party artifacts",
+        "Wiki workflow skills written for Ar9av's own vault layout (opt-in)",
     ),
     (
         "kepano",
         "kepano/obsidian-skills",
-        "Upstream Obsidian skills copied as third-party artifacts",
+        "Obsidian format skills (Markdown, Bases, Canvas, CLI) by the Obsidian team",
     ),
 )
+
+DEFAULT_SKILL_SELECTION = ("kepano",)
 
 
 @dataclass(frozen=True)
@@ -56,6 +58,7 @@ def select_upstream_skills(interactive: bool) -> tuple[str, ...]:
         "Select upstream skill sources to install",
         UPSTREAM_SKILL_OPTIONS,
         interactive=interactive,
+        default_keys=DEFAULT_SKILL_SELECTION,
     )
 
 

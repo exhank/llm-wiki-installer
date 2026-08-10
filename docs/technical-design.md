@@ -109,16 +109,23 @@ retrieval accelerator = wiki/index.md + wiki/maps/ + rg + fzf
 │  ├─ wiki-page.md               # detailed wiki/*.md page template
 │  └─ map.md                     # detailed wiki/maps/*.md map template
 ├─ AGENTS.md                    # repository-level canonical agent policy
+├─ CLAUDE.md                    # imports AGENTS.md for Claude Code (which does not read AGENTS.md natively)
 ├─ README.md                    # human entry point: operations guide, design idea, directory explanation
 ├─ .agents/
 │  ├─ skills/
 │  │  └─ <skill-name>/          # selected upstream skills, flattened by skill name
+├─ .claude/
+│  └─ skills -> ../.agents/skills  # symlink so Claude Code discovers the same skills
 ├─ .codex/
 │  ├─ config.toml               # Codex adapter config
-│  └─ hooks.json                # Codex project hook config
+│  └─ hooks.json                # Codex Stop hook running the structural vault checks
 ├─ .scripts/                    # fixed project scripts
 └─ .gitignore
 ```
+
+Empty contract directories (`inbox/`, `raw/`, `attachments/`, `outputs/`,
+`archives/`, `wiki/maps/`) contain a `.gitkeep` placeholder so the layout
+survives commit, push, and clone.
 
 Do not create:
 
@@ -160,8 +167,10 @@ examples/
 | `schema/wiki-page.md` | detailed `wiki/*.md` page template, frontmatter, body, and tag rules | writable within a clear schema/policy update task | referenced by `AGENTS.md`; keeps page template policy progressively disclosed |
 | `schema/map.md` | detailed `wiki/maps/*.md` map template and body structure | writable within a clear schema/policy update task | referenced by `AGENTS.md`; keeps map template policy progressively disclosed |
 | `.agents/skills/` | selected upstream Skills, flattened by skill name | maintained by setup | generated during setup/update |
+| `.claude/skills` | symlink to `.agents/skills` for Claude Code discovery | maintained by setup | generated during setup |
+| `CLAUDE.md` | imports `AGENTS.md` for Claude Code | maintained by setup | must stay a thin import |
 | `.codex/config.toml` | Codex adapter config | maintained by adapter | does not carry long-term rules |
-| `.codex/hooks.json` | Codex project hook config | maintained by adapter | does not carry long-term rules |
+| `.codex/hooks.json` | Codex Stop hook that runs the structural vault checks | maintained by adapter | does not carry long-term rules; active only after project trust |
 | `.scripts/` | general project scripts | maintained by setup | reviewable and testable |
 | `.obsidian/` | stable Obsidian settings, pinned community plugin assets, and theme files | maintained by setup | workspace state remains ignored |
 
@@ -499,11 +508,12 @@ fzf     = interactive fuzzy selection
 ```
 
 Interactive setup presents rg and fzf in a default-all selector. Up/Down moves,
-Space toggles, and Enter accepts. Non-interactive setup uses the all-selected
-default.
+Space toggles, and Enter accepts. Non-interactive setup uses the same defaults.
 
 Upstream Skill sources are installed from release-pinned commit SHAs, not from
-mutable branch tips.
+mutable branch tips. `kepano/obsidian-skills` (Obsidian format skills) is
+selected by default; `Ar9av/obsidian-wiki` is opt-in because its skills target
+that project's own vault layout and are copied as reference material only.
 
 Retrieval order:
 
@@ -624,7 +634,22 @@ git --no-pager diff --stat
 git --no-pager diff
 ```
 
-If a check fails, the LLM must report the failure reason, fix it, and retry. It must not claim success.
+The two scripts split hard gates from lint:
+
+```text
+postrun.sh          hard boundaries only: raw/ changes need ALLOW_RAW_CHANGE=1
+                    plus a wiki/log.jsonl update; .codex/rules/ must not exist.
+check-index-log.sh  structural consistency: new, deleted, moved, or renamed
+                    pages must update wiki/index.md and wiki/log.jsonl.
+                    Content edits to existing pages are exempt. Naming issues
+                    are warnings so normal human Obsidian use never fails.
+```
+
+If a check fails, the LLM must report the failure reason, fix it, and retry.
+It must not claim success. Each completed task ends with one descriptive Git
+commit made by the agent; the bundled obsidian-git plugin is configured for
+manual commits only, so automatic commits never bypass review or blind these
+checks (they diff against HEAD).
 
 ---
 
@@ -694,6 +719,8 @@ Main risks:
 | false log | deletes/moves have no record | deletes/moves must be logged |
 | uncontrolled whole-vault recompilation | large unscoped edits | prohibit whole-vault recompilation without scope |
 | outputs polluting wiki | reports become truth source in reverse | outputs->inbox->wiki |
+| auto-commit bypass | plugin commits before review; checks see a clean tree | obsidian-git generated with manual-commit defaults; agent commits once per task |
+| Skill layout conflict | upstream Skills teach another vault layout | layout-specific sources are opt-in; workflow schema maps or ignores foreign paths; AGENTS.md wins |
 | Skill fork | hand-written replacement for upstream Skill | reuse open-source Skills as-is; generate only the setup wrapper, AGENTS policy, and scripts |
 | adapter becomes truth source | different agents have inconsistent rules | AGENTS.md is canonical |
 | plugin lock-in | relying on Obsidian plugins as the knowledge format | generate pinned assets; keep knowledge GFM-compatible |

@@ -25,6 +25,17 @@ def test_select_options_defaults_to_all_when_not_interactive() -> None:
     assert select_options("Pick", options, interactive=False) == ("one", "two")
 
 
+def test_select_options_honors_explicit_defaults_when_not_interactive() -> None:
+    options = (
+        ("one", "One", "First option"),
+        ("two", "Two", "Second option"),
+    )
+
+    assert select_options(
+        "Pick", options, interactive=False, default_keys=("two",)
+    ) == ("two",)
+
+
 def test_select_options_delegates_to_prompt_when_interactive(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -32,7 +43,7 @@ def test_select_options_delegates_to_prompt_when_interactive(
     monkeypatch.setattr("llm_wiki_installer.terminal_ui.can_prompt", lambda: True)
     monkeypatch.setattr(
         "llm_wiki_installer.terminal_ui.prompt_multiselect",
-        lambda _title, _options: ("one",),
+        lambda _title, _options, _defaults: ("one",),
     )
 
     assert select_options("Pick", options, interactive=True) == ("one",)
@@ -106,6 +117,25 @@ def test_prompt_multiselect_toggles_and_accepts(
 
     assert prompt_multiselect("Pick", options) == ("two",)
     assert "Use Up/Down to move" in capsys.readouterr().out
+
+
+def test_prompt_multiselect_starts_from_default_selection(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    options = (
+        ("one", "One", "First option"),
+        ("two", "Two", "Second option"),
+    )
+    monkeypatch.setattr(
+        "llm_wiki_installer.terminal_ui.prompt_stream",
+        lambda stream, _mode: nullcontext(stream),
+    )
+    monkeypatch.setattr("llm_wiki_installer.terminal_ui.read_key", lambda *_args: "\r")
+
+    assert prompt_multiselect("Pick", options, default_keys=("two",)) == ("two",)
+    rendered = capsys.readouterr().out
+    assert "[ ] One" in rendered
+    assert "[x] Two" in rendered
 
 
 def test_prompt_multiselect_reports_cancel(

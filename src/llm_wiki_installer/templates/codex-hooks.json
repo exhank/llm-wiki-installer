@@ -1,3 +1,16 @@
 {
-  "hooks": {}
+  "description": "Run the generated structural vault checks when a Codex turn ends. Codex loads this file only after the project .codex layer is trusted.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .scripts/check-index-log.sh",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
 }

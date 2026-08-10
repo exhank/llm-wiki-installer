@@ -6,7 +6,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .command_runner import run
+from .command_runner import command_output, run
 from .errors import InstallerError
 from .install_options import Options
 from .target_layout import (
@@ -21,7 +21,15 @@ from .toolchain import (
     check_required_tools,
     select_dependency_tools,
 )
-from .upstream_skills import install_upstream_skills, select_upstream_skills
+from .upstream_skills import (
+    DEFAULT_SKILL_SELECTION,
+    install_upstream_skills,
+    select_upstream_skills,
+)
+
+# Entries that may already exist in a target directory without the installer
+# treating it as non-empty.
+HARMLESS_TARGET_ENTRIES = {".git", ".DS_Store", ".localized", ".obsidian"}
 
 
 def run_install(options: Options) -> None:
@@ -48,13 +56,10 @@ def run_install(options: Options) -> None:
         )
 
     target = absolute_directory(target)
+    ensure_safe_target(target, force=options.force, quiet=options.json_output)
 
     log("Check tools", quiet=options.json_output)
-    check_required_tools(
-        selected_tools,
-        install_missing=options.install_tools,
-        quiet=options.json_output,
-    )
+    check_required_tools(selected_tools)
 
     log("Prepare target", quiet=options.json_output)
     prepare_target(target)
@@ -69,18 +74,7 @@ def run_install(options: Options) -> None:
     )
 
     log("Verify target", quiet=options.json_output)
-    run(["bash", ".scripts/postrun.sh"], cwd=target, quiet=options.json_output)
-    run(
-        ["bash", ".scripts/check-index-log.sh"],
-        cwd=target,
-        quiet=options.json_output,
-    )
-    run(
-        ["git", "--no-pager", "diff", "--stat"],
-        cwd=target,
-        check=False,
-        quiet=options.json_output,
-    )
+    verify_target(target, quiet=options.json_output)
 
     log("Done", quiet=options.json_output)
     result = {
@@ -92,9 +86,35 @@ def run_install(options: Options) -> None:
         "selectedSkills": list(selected_skills),
     }
     if options.json_output:
-        print(json.dumps(result, sort_keys=True))
+        print(json.dumps(result, sort_keys=True), flush=True)
     else:
-        print(f"Generated llm-wiki knowledge vault at: {target}")
+        print(f"Generated llm-wiki knowledge vault at: {target}", flush=True)
+
+
+def verify_target(target: Path, quiet: bool = False) -> None:
+    """Run the generated vault checks without failing the install.
+
+    The checks report on the vault's current working tree, which may contain
+    legitimate pre-existing user changes on re-install. The install itself has
+    already succeeded by this point, so check findings are advisory here.
+    """
+    issues = False
+    for script in (".scripts/postrun.sh", ".scripts/check-index-log.sh"):
+        result = run(["bash", script], cwd=target, check=False, quiet=quiet)
+        if result.returncode != 0:
+            issues = True
+    run(
+        ["git", "--no-pager", "diff", "--stat"],
+        cwd=target,
+        check=False,
+        quiet=quiet,
+    )
+    if issues and not quiet:
+        print(
+            "note: vault checks reported issues above; the install itself "
+            "succeeded. Review and fix them before the next commit.",
+            flush=True,
+        )
 
 
 def source_root() -> Path:
@@ -110,6 +130,56 @@ def absolute_directory(path: Path) -> Path:
     resolved = path.expanduser().resolve()
     resolved.mkdir(parents=True, exist_ok=True)
     return resolved
+
+
+def ensure_safe_target(target: Path, force: bool, quiet: bool = False) -> None:
+    """Refuse surprising targets unless --force is passed.
+
+    Re-running inside an already generated vault is always allowed. Otherwise
+    a non-empty directory, or a directory nested inside another Git
+    repository, needs an explicit --force.
+    """
+    if (target / "AGENTS.md").is_file() and (target / "wiki").is_dir():
+        return
+
+    entries = {entry.name for entry in target.iterdir()}
+    unexpected = sorted(entries - HARMLESS_TARGET_ENTRIES)
+    if unexpected and not force:
+        preview = ", ".join(unexpected[:5])
+        raise InstallerError(
+            f"target directory is not empty (found: {preview}). Choose an "
+            "empty directory, or re-run with --force to install here anyway."
+        )
+
+    enclosing = enclosing_git_root(target)
+    if enclosing is not None:
+        if not force:
+            raise InstallerError(
+                f"target is inside an existing Git repository ({enclosing}). "
+                "Installing would create a nested repository. Choose a "
+                "directory outside that repository, or re-run with --force."
+            )
+        if not quiet:
+            print(
+                f"warning: creating a nested Git repository inside {enclosing}.",
+                flush=True,
+            )
+
+
+def enclosing_git_root(target: Path) -> Path | None:
+    if (target / ".git").exists():
+        return None
+    output = command_output(["git", "-C", str(target), "rev-parse", "--show-toplevel"])
+    if not output:
+        return None
+    toplevel = Path(output)
+    if (
+        toplevel.is_absolute()
+        and toplevel != target
+        and target.is_relative_to(toplevel)
+    ):
+        return toplevel
+    return None
 
 
 def reject_generator_target(target: Path, source_root_path: Path) -> None:
@@ -132,7 +202,7 @@ def reject_generator_target(target: Path, source_root_path: Path) -> None:
 
 def log(message: str, quiet: bool = False) -> None:
     if not quiet:
-        print(f"== {message} ==")
+        print(f"== {message} ==", flush=True)
 
 
 def resolve_dependency_tools(options: Options) -> tuple[str, ...]:
@@ -149,7 +219,7 @@ def resolve_upstream_skills(options: Options) -> tuple[str, ...]:
     if options.offline:
         return ()
     if options.dry_run:
-        return ("Ar9av", "kepano")
+        return DEFAULT_SKILL_SELECTION
     return select_upstream_skills(options.interactive)
 
 
@@ -164,14 +234,11 @@ def install_plan(
         "target": str(target),
         "force": options.force,
         "offline": options.offline,
-        "installMissingTools": options.install_tools,
         "selectedTools": list(selected_tools),
         "selectedSkills": list(selected_skills),
         "wouldCreateDirectories": list(REQUIRED_DIRECTORIES),
         "wouldWriteFiles": [relative_path for relative_path, _ in GENERATED_FILES],
-        "wouldRunNetworkSteps": network_steps(
-            selected_tools, selected_skills, options.install_tools, options.offline
-        ),
+        "wouldRunNetworkSteps": network_steps(selected_skills, options.offline),
     }
 
 
@@ -183,7 +250,7 @@ def emit_install_plan(
 ) -> None:
     plan = install_plan(options, target, selected_tools, selected_skills)
     if options.json_output:
-        print(json.dumps(plan, sort_keys=True))
+        print(json.dumps(plan, sort_keys=True), flush=True)
         return
 
     print("Dry run: no files were written and no network steps were run.")
@@ -192,7 +259,6 @@ def emit_install_plan(
     print(
         f"Upstream Skills: {', '.join(selected_skills) if selected_skills else 'none'}"
     )
-    print(f"Install missing tools: {str(options.install_tools).lower()}")
     print(f"Offline: {str(options.offline).lower()}")
     print("Would create directories:")
     for path in plan["wouldCreateDirectories"]:
@@ -205,16 +271,9 @@ def emit_install_plan(
         print(f"  - {step}")
 
 
-def network_steps(
-    selected_tools: tuple[str, ...],
-    selected_skills: tuple[str, ...],
-    install_tools: bool,
-    offline: bool,
-) -> list[str]:
+def network_steps(selected_skills: tuple[str, ...], offline: bool) -> list[str]:
     if offline:
         return []
-    steps = []
-    del selected_tools, install_tools
-    for skill in selected_skills:
-        steps.append(f"git clone pinned upstream Skill source: {skill}")
-    return steps
+    return [
+        f"git clone pinned upstream Skill source: {skill}" for skill in selected_skills
+    ]

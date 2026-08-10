@@ -2,8 +2,8 @@
 
 [![CI](https://github.com/exhank/llm-wiki-installer/actions/workflows/ci.yml/badge.svg)](https://github.com/exhank/llm-wiki-installer/actions/workflows/ci.yml)
 [![Release](https://github.com/exhank/llm-wiki-installer/actions/workflows/release.yml/badge.svg)](https://github.com/exhank/llm-wiki-installer/actions/workflows/release.yml)
-[![Python 3.13+](https://img.shields.io/badge/python-3.13%2B-blue.svg)](pyproject.toml)
-[![PyPI](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fpypi.org%2Fpypi%2Fllm-wiki-installer%2F0.1.7%2Fjson&query=%24.info.version&label=PyPI&prefix=v)](https://pypi.org/project/llm-wiki-installer/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
+[![PyPI](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fpypi.org%2Fpypi%2Fllm-wiki-installer%2F0.2.0%2Fjson&query=%24.info.version&label=PyPI&prefix=v)](https://pypi.org/project/llm-wiki-installer/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 `llm-wiki-installer` generates a Git-auditable, agent-friendly Obsidian
@@ -59,14 +59,16 @@ project sets up a stricter vault contract:
 
 - One-command local or streamed installer.
 - Python installer package with no runtime third-party dependencies.
-- Interactive default-all selectors for dependency tools and upstream Skill
-  sources.
-- Generated AGENTS policy, README, scripts, Codex config, index, log, and
-  stable Obsidian settings.
+- Interactive selectors for dependency tools and upstream Skill sources.
+- Generated AGENTS policy with a CLAUDE.md bridge for Claude Code, README,
+  scripts, Codex config and hooks, index, log, and stable Obsidian settings.
 - Generated stable Obsidian settings with bundled Things theme and obsidian-git
-  plugin assets.
+  plugin assets, configured for manual commits so Git review stays meaningful.
+- Skills exposed to Codex and Gemini CLI via `.agents/skills/` and to Claude
+  Code via a `.claude/skills/` symlink.
 - Pinned upstream Skill commits for reproducible generated vaults.
-- Safety checks that refuse to generate into this generator repository.
+- Safety checks that refuse to generate into this generator repository, a
+  non-empty directory, or a nested Git repository without `--force`.
 - Unit, shell integration, type, lint, coverage, and package checks.
 
 ## What It Generates
@@ -91,15 +93,21 @@ knowledge-vault/
 |   +-- log.md           # wiki/log.jsonl event schemas
 |   +-- wiki-page.md     # wiki/*.md page template
 |   +-- map.md           # wiki/maps/*.md map template
-+-- AGENTS.md            # runtime policy for agents
++-- AGENTS.md            # runtime policy for agents (Codex, Gemini, OpenCode)
++-- CLAUDE.md            # imports AGENTS.md for Claude Code
 +-- .agents/
 |   +-- skills/          # flattened pinned third-party Skill artifacts
++-- .claude/
+|   +-- skills/          # symlink to .agents/skills for Claude Code discovery
 +-- .codex/
 |   +-- config.toml      # Codex project config
-|   +-- hooks.json       # Codex project hook config
+|   +-- hooks.json       # Codex Stop hook running the structural vault checks
 +-- .scripts/            # verification helpers
 +-- .obsidian/           # stable Obsidian settings, theme, and pinned plugin assets
 ```
+
+Empty contract directories contain a `.gitkeep` placeholder so the layout
+survives commit, push, and clone.
 
 The operating model is intentionally file-first:
 
@@ -189,30 +197,30 @@ Run without network bootstrap operations:
 bash install.sh --offline --tools rg --skills none /path/to/knowledge-vault
 ```
 
-Run without automatically installing missing selectable tools:
-
-```bash
-bash install.sh --no-install-tools --tools rg /path/to/knowledge-vault
-```
+The installer never installs missing tools itself. When a selected tool is not
+found it fails with an actionable message; install the tool or re-run with a
+`--tools` selection that excludes it.
 
 When run from an interactive terminal, the installer shows two onboarding
 selectors before generating files:
 
-- dependency tools: `rg` and `fzf`
-- upstream Skill sources: `Ar9av/obsidian-wiki` and `kepano/obsidian-skills`
+- dependency tools: `rg` and `fzf` (both selected by default)
+- upstream Skill sources: `kepano/obsidian-skills` (selected by default) and
+  `Ar9av/obsidian-wiki` (opt-in: its skills target Ar9av's own vault layout
+  and are copied as reference material)
 
-Both selectors default to all options selected. Use Up/Down to move, Space to
-toggle an option, and Enter to continue. Non-interactive runs, including
-scripted installs with redirected output, use the all-selected default. To force
-that behavior from a terminal, pass:
+Use Up/Down to move, Space to toggle an option, and Enter to continue.
+Non-interactive runs, including scripted installs with redirected output, use
+the same defaults. To force that behavior from a terminal, pass:
 
 ```bash
 bash install.sh --no-interactive /path/to/knowledge-vault
 ```
 
 The installer refuses to use a checked-out generator repository, or any path
-inside one, as the target. If you run `bash install.sh` from this repository, it
-exits instead of writing vault files here.
+inside one, as the target. It also refuses a non-empty target directory and a
+target nested inside another Git repository unless `--force` is passed;
+re-running inside an already generated vault is always allowed.
 
 ## Generated Target Layout
 
@@ -227,8 +235,10 @@ outputs/
 archives/
 schema/
 AGENTS.md
+CLAUDE.md
 README.md
 .agents/skills/
+.claude/skills -> .agents/skills
 .codex/config.toml
 .codex/hooks.json
 .scripts/postrun.sh
@@ -238,32 +248,35 @@ README.md
 ```
 
 Selected upstream Skills are installed into `.agents/skills/`, flattened by
-skill directory name. Stable Obsidian settings, the Things theme, and pinned
-obsidian-git plugin assets are generated under `.obsidian/`; volatile workspace
-state is not generated.
+skill directory name, and exposed to Claude Code through the `.claude/skills/`
+symlink. Stable Obsidian settings, the Things theme, and pinned obsidian-git
+plugin assets are generated under `.obsidian/`; the plugin is configured for
+manual commits (no auto commit, pull, or push), and volatile workspace state is
+not generated.
 
 ## Requirements
 
-- Python 3.13+
+- Python 3.10+ (`uvx` provisions a suitable Python automatically)
 - Git
 - `rg` when selected
 - `fzf` when selected
 - Network access to PyPI for `uvx`, GitHub for streamed installs and upstream
   Skills
+- macOS or Linux (the interactive selector uses POSIX terminal APIs)
 
-Pass `--no-install-tools` to require preinstalled tools instead. Pass
-`--offline` to disable upstream Skill cloning; when `--offline` is used without
-`--skills`, upstream Skills default to `none`.
+The installer never installs tools itself. Pass `--offline` to disable
+upstream Skill cloning; when `--offline` is used without `--skills`, upstream
+Skills default to `none`.
 
 ## CLI Options
 
 ```text
---force              overwrite generated files in the target vault
---no-interactive     use default all-selected prompts without asking
+--force              overwrite generated files, and allow non-empty or
+                     nested-repository targets
+--no-interactive     use default selections without asking
 --yes                alias for --no-interactive
---tools LIST         rg,fzf, all, or none
---skills LIST        Ar9av,kepano, all, or none
---no-install-tools   fail if a selected missing tool would need installation
+--tools LIST         rg,fzf, all, or none (default: all)
+--skills LIST        Ar9av,kepano, all, or none (default: kepano)
 --offline            do not run network bootstrap operations
 --dry-run            print the install plan without writing files
 --json               print dry-run or final install summaries as JSON
@@ -273,12 +286,18 @@ Pass `--no-install-tools` to require preinstalled tools instead. Pass
 
 Installer failures are intended to be actionable. Common fixes:
 
-- Missing Python: install Python 3.13+ or use `uvx --python 3.13`.
+- Missing Python: install Python 3.10+ or use `uvx llm-wiki-installer`.
 - Missing Git: install Git and rerun the same command.
 - Missing `rg` or `fzf`: install the selected tool or rerun with `--tools`
   excluding it.
 - Network unavailable: use `--offline --skills none`; selected upstream Skills
   require GitHub access.
+- Non-empty target directory: choose an empty directory or re-run with
+  `--force`.
+
+The post-install verification step reports issues without failing the install:
+re-running the installer inside a vault that has legitimate uncommitted work
+succeeds and prints the check findings for review.
 
 ## Privacy And Network Boundaries
 

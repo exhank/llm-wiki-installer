@@ -4,17 +4,23 @@ import sys
 import termios
 import tty
 from contextlib import contextmanager
-from typing import Iterator, Sequence, TextIO, cast
+from typing import Iterator, Optional, Sequence, TextIO, cast
 
 from .errors import InstallerError
 
 
 def select_options(
-    title: str, options: Sequence[tuple[str, str, str]], interactive: bool
+    title: str,
+    options: Sequence[tuple[str, str, str]],
+    interactive: bool,
+    default_keys: Optional[tuple[str, ...]] = None,
 ) -> tuple[str, ...]:
+    defaults = (
+        tuple(key for key, _, _ in options) if default_keys is None else default_keys
+    )
     if not interactive or not can_prompt():
-        return tuple(key for key, _, _ in options)
-    return prompt_multiselect(title, options)
+        return defaults
+    return prompt_multiselect(title, options, defaults)
 
 
 def can_prompt() -> bool:
@@ -41,9 +47,14 @@ def prompt_stream(stream: TextIO, mode: str) -> Iterator[TextIO]:
 
 
 def prompt_multiselect(
-    title: str, options: Sequence[tuple[str, str, str]]
+    title: str,
+    options: Sequence[tuple[str, str, str]],
+    default_keys: Optional[tuple[str, ...]] = None,
 ) -> tuple[str, ...]:
-    selected = {key for key, _, _ in options}
+    if default_keys is None:
+        selected = {key for key, _, _ in options}
+    else:
+        selected = set(default_keys)
     cursor = 0
     line_count = len(options) + 4
     first_render = True
@@ -80,7 +91,7 @@ def render_multiselect(
     stream = output_stream or sys.stdout
     lines = [
         title,
-        "Use Up/Down to move, Space to toggle, Enter to continue. Default: all selected.",
+        "Use Up/Down to move, Space to toggle, Enter to continue.",
         "",
     ]
     for index, (key, label, description) in enumerate(options):

@@ -35,6 +35,27 @@ under `.agents/skills/`, then read the relevant
 workflow guidance; it must not override `AGENTS.md`, the `raw/` boundary, or
 schema and log rules.
 
+Upstream Skills were written for their authors' own vault layouts. When a
+Skill references paths or config files that do not exist here (for example
+`_raw/`, `_staging/`, a root-level `index.md` or `log.md`, `.manifest.json`,
+or `~/.obsidian-wiki/config`), map them to this vault's layout (`raw/`,
+`inbox/`, `wiki/index.md`, `wiki/log.jsonl`) or ignore that instruction. Do
+not create the missing upstream files or restructure this vault to match a
+Skill.
+
+## Review cadence
+
+Humans review sources at promotion time (`inbox/` to `raw/`) and review the
+wiki by digest and sampling, not diff by diff. A periodic digest is enough:
+
+```bash
+git --no-pager log --since="1 week ago" --stat -- wiki
+```
+
+Summarize what changed, which topics grew, and any flagged contradictions
+into `outputs/` when the user asks for a digest. Fix problems found at read
+time; any wiki page can be recompiled from `raw/` if it degrades.
+
 ## Tags and index
 
 All new and edited wiki pages must follow `wiki/tags.md` and use flat

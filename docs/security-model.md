@@ -20,10 +20,12 @@ for users and maintainers to audit.
 The installer may access the network only for documented bootstrap operations:
 
 - PyPI-based installs fetch the published `llm-wiki-installer` distribution,
-  typically through `uvx --python 3.13 llm-wiki-installer`;
-- streamed installs clone `llm-wiki-installer` from the configured repository
-  and release ref, defaulting to `v0.1.0`;
-- selected upstream Skill sources are cloned at pinned commit SHAs.
+  typically through `uvx llm-wiki-installer`;
+- streamed installs clone `llm-wiki-installer` from the configured repository,
+  resolving the latest GitHub release tag when `LLM_WIKI_INSTALLER_REF` is not
+  set;
+- selected upstream Skill sources are cloned at pinned commit SHAs
+  (`kepano/obsidian-skills` by default; `Ar9av/obsidian-wiki` opt-in).
 
 Pinned upstream commits make generated vaults reproducible for a given installer
 release. Updating those pins is a generator release decision and should be
@@ -42,9 +44,12 @@ upstream Skills default to `none`.
 ## Filesystem Safety
 
 The installer must refuse to generate into this generator repository or any
-child path. Generated files are written only under the target root. Symlink
-checks protect generated paths and upstream Skill copy targets from escaping the
-target vault.
+child path. It also refuses a non-empty target directory and a target nested
+inside another Git repository unless `--force` is passed; re-running inside an
+already generated vault is allowed. Generated files are written only under the
+target root. Symlink checks protect generated paths and upstream Skill copy
+targets from escaping the target vault; the only generated symlink is the
+relative `.claude/skills -> ../.agents/skills` link inside the target.
 
 Existing generated files are preserved unless `--force` is passed. User-owned
 knowledge files under `raw/`, `wiki/`, `outputs/`, `inbox/`, and `archives/` are

@@ -307,8 +307,9 @@ test_readme_one_line_curl_install_command() {
   canonical_target="$(cd "$target" && pwd -P)"
 
   assert_file "$target/AGENTS.md"
-  assert_file "$target/.agents/skills/ar9av-skill/SKILL.md"
+  assert_file "$target/CLAUDE.md"
   assert_file "$target/.agents/skills/kepano-skill/SKILL.md"
+  [ ! -e "$target/.agents/skills/ar9av-skill" ] || fail_assertion "Ar9av skills must be opt-in"
   assert_contains "$curl_log" "raw.githubusercontent.com/exhank/llm-wiki-installer/main/install.sh"
   assert_contains "$git_log" "fetch -q --depth 1 origin v9.8.7"
   assert_contains "$target/.scripts/postrun.sh" "git --no-pager diff --stat"
@@ -366,10 +367,36 @@ test_no_interactive_uses_default_selection() {
 
   run_install "$out" --no-interactive "$target"
 
-  assert_file "$target/.agents/skills/ar9av-skill/SKILL.md"
   assert_file "$target/.agents/skills/kepano-skill/SKILL.md"
+  [ ! -e "$target/.agents/skills/ar9av-skill" ] || fail_assertion "Ar9av skills must be opt-in"
   [ ! -e "$target/.agents/skill-manifest.md" ] || fail_assertion "unexpected skill-manifest.md"
   [ ! -e "$target/.agents/skill-manifest.json" ] || fail_assertion "unexpected skill-manifest.json"
+}
+
+test_skills_all_installs_both_upstream_sources() {
+  setup_case skills-all
+  local out="$CASE_DIR/out.txt"
+  local target="$CASE_DIR/vault"
+
+  run_install "$out" --skills all "$target"
+
+  assert_file "$target/.agents/skills/ar9av-skill/SKILL.md"
+  assert_file "$target/.agents/skills/kepano-skill/SKILL.md"
+}
+
+test_target_guards_require_force() {
+  setup_case target-guards
+  local out="$CASE_DIR/out.txt"
+  local target="$CASE_DIR/vault"
+  mkdir -p "$target"
+  printf 'existing\n' >"$target/notes.md"
+
+  expect_install_failure "$out" --tools none --skills none "$target"
+  assert_contains "$out" "ERROR: target directory is not empty"
+
+  run_install "$out" --force --tools none --skills none "$target"
+  assert_file "$target/AGENTS.md"
+  assert_contains "$target/notes.md" "existing"
 }
 
 test_dry_run_writes_nothing() {
@@ -429,8 +456,17 @@ test_full_install_generates_expected_layout() {
   assert_file "$target/.obsidian/plugins/obsidian-git/manifest.json"
   assert_file "$target/.obsidian/plugins/obsidian-git/styles.css"
   assert_file "$target/.obsidian/themes/Things/theme.css"
-  assert_file "$target/.agents/skills/ar9av-skill/SKILL.md"
+  assert_file "$target/CLAUDE.md"
+  assert_contains "$target/CLAUDE.md" "@AGENTS.md"
   assert_file "$target/.agents/skills/kepano-skill/SKILL.md"
+  [ -L "$target/.claude/skills" ] || fail_assertion "expected .claude/skills symlink"
+  assert_file "$target/.claude/skills/kepano-skill/SKILL.md"
+  assert_file "$target/inbox/.gitkeep"
+  assert_file "$target/raw/.gitkeep"
+  assert_file "$target/attachments/.gitkeep"
+  assert_file "$target/outputs/.gitkeep"
+  assert_file "$target/archives/.gitkeep"
+  assert_file "$target/wiki/maps/.gitkeep"
   [ ! -e "$target/.agents/skill-manifest.md" ] || fail_assertion "unexpected skill-manifest.md"
   [ ! -e "$target/.agents/skill-manifest.json" ] || fail_assertion "unexpected skill-manifest.json"
   assert_executable "$target/.scripts/postrun.sh"
@@ -487,69 +523,104 @@ test_upstream_repo_without_skill_files_fails() {
   assert_contains "$out" "has no discovered SKILL.md files."
 }
 
-test_generated_check_index_log_requires_index_and_log() {
+test_generated_check_index_log_requires_index_and_log_for_new_pages() {
   setup_case check-index-log
   local out="$CASE_DIR/out.txt"
   local target="$CASE_DIR/vault"
 
   run_install "$out" "$target"
 
-  if (cd "$target" && STUB_GIT_DIFF_NAMES="wiki/new-page.md" run_with_stubs bash .scripts/check-index-log.sh) >"$out" 2>&1; then
+  if (cd "$target" && STUB_GIT_OTHERS="wiki/new-page.md" run_with_stubs bash .scripts/check-index-log.sh) >"$out" 2>&1; then
     sed -n '1,220p' "$out" >&2
     fail_assertion "expected index/log failure"
   fi
-  assert_contains "$out" "ERROR: wiki content changed but wiki/index.md was not updated."
+  assert_contains "$out" "ERROR: new wiki pages were added but wiki/index.md was not updated."
 
   (
-    export STUB_GIT_DIFF_NAMES=$'wiki/new-page.md\nwiki/index.md\nwiki/log.jsonl'
-    export STUB_GIT_LOG_DIFF=$'+{"schema_version":1,"timestamp":"2026-05-29T00:00:00Z","actor":"agent","type":"ingest","scope":"raw/source -> wiki/new-page.md","reason":"Compiled durable knowledge from raw source.","review":"self-reviewed","impact":{"index_updated":true,"references_checked":true},"files":["raw/source","wiki/new-page.md","wiki/index.md"]}'
+    export STUB_GIT_OTHERS=$'wiki/new-page.md\nwiki/index.md\nwiki/log.jsonl'
     cd "$target"
     run_with_stubs bash .scripts/check-index-log.sh
   ) >"$out" 2>&1
   assert_contains "$out" "Index/log checks OK."
 }
 
-test_generated_check_index_log_requires_log_for_raw_changes() {
-  setup_case check-index-log-raw
+test_generated_check_index_log_exempts_content_edits() {
+  setup_case check-index-log-edits
   local out="$CASE_DIR/out.txt"
   local target="$CASE_DIR/vault"
 
   run_install "$out" "$target"
 
-  if (cd "$target" && STUB_GIT_DIFF_NAMES="raw/source.md" run_with_stubs bash .scripts/check-index-log.sh) >"$out" 2>&1; then
-    sed -n '1,220p' "$out" >&2
-    fail_assertion "expected raw/log failure"
-  fi
-  assert_contains "$out" "ERROR: raw/ changed but wiki/log.jsonl was not updated."
+  (
+    export STUB_GIT_DIFF_NAMES="wiki/existing-page.md"
+    cd "$target"
+    run_with_stubs bash .scripts/check-index-log.sh
+  ) >"$out" 2>&1
+  assert_contains "$out" "Index/log checks OK."
 }
 
-test_generated_check_index_log_rejects_bad_generated_names() {
+test_generated_check_index_log_requires_log_for_deletions() {
+  setup_case check-index-log-delete
+  local out="$CASE_DIR/out.txt"
+  local target="$CASE_DIR/vault"
+
+  run_install "$out" "$target"
+
+  if (
+    cd "$target" &&
+      STUB_GIT_DIFF_NAMES="wiki/old-page.md" \
+        STUB_GIT_NAME_STATUS=$'D\twiki/old-page.md' \
+        run_with_stubs bash .scripts/check-index-log.sh
+  ) >"$out" 2>&1; then
+    sed -n '1,220p' "$out" >&2
+    fail_assertion "expected deletion/log failure"
+  fi
+  assert_contains "$out" "ERROR: file deleted, moved, renamed, or copied but wiki/log.jsonl was not updated."
+}
+
+test_generated_check_index_log_warns_on_bad_generated_names() {
   setup_case check-index-log-names
   local out="$CASE_DIR/out.txt"
   local target="$CASE_DIR/vault"
 
   run_install "$out" "$target"
 
-  if (cd "$target" && STUB_GIT_DIFF_NAMES="outputs/New Note.md" run_with_stubs bash .scripts/check-index-log.sh) >"$out" 2>&1; then
-    sed -n '1,220p' "$out" >&2
-    fail_assertion "expected bad generated filename failure"
-  fi
-  assert_contains "$out" "ERROR: Generated wiki/output/script/config-description filenames must use lowercase kebab-case."
+  (
+    export STUB_GIT_DIFF_NAMES="outputs/New Note.md"
+    cd "$target"
+    run_with_stubs bash .scripts/check-index-log.sh
+  ) >"$out" 2>&1
+  assert_contains "$out" "WARNING: agent-generated wiki/output/script filenames should use lowercase kebab-case."
+  assert_contains "$out" "Index/log checks OK."
 }
 
-test_generated_postrun_rejects_unauthorized_skill_file() {
+test_generated_postrun_allows_skill_files_and_human_names() {
   setup_case postrun-skill
   local out="$CASE_DIR/out.txt"
   local target="$CASE_DIR/vault"
 
   run_install "$out" "$target"
-  printf '# Local Skill\n' >"$target/SKILL.md"
+  mkdir -p "$target/.claude/skills-local/my-skill"
+  printf '# Local Skill\n' >"$target/.claude/skills-local/my-skill/SKILL.md"
+  printf '# Untitled\n' >"$target/wiki/Untitled.md"
 
-  if (cd "$target" && run_with_stubs bash .scripts/postrun.sh) >"$out" 2>&1; then
-    sed -n '1,220p' "$out" >&2
-    fail_assertion "expected unauthorized SKILL.md failure"
-  fi
-  assert_contains "$out" "ERROR: Unauthorized SKILL.md found outside .agents/skills/<skill-name>/."
+  (cd "$target" && run_with_stubs bash .scripts/postrun.sh) >"$out" 2>&1
+  assert_contains "$out" "Post-run OK. Review diff before commit."
+}
+
+test_generated_postrun_ignores_raw_gitkeep_placeholder() {
+  setup_case postrun-raw-gitkeep
+  local out="$CASE_DIR/out.txt"
+  local target="$CASE_DIR/vault"
+
+  run_install "$out" "$target"
+
+  (
+    export STUB_GIT_OTHERS="raw/.gitkeep"
+    cd "$target"
+    run_with_stubs bash .scripts/postrun.sh
+  ) >"$out" 2>&1
+  assert_contains "$out" "Post-run OK. Review diff before commit."
 }
 
 test_generated_postrun_rejects_forbidden_runtime_directories() {
@@ -612,16 +683,20 @@ main() {
   run_test test_refuses_generator_lookalike
   run_test test_default_target_is_current_directory
   run_test test_no_interactive_uses_default_selection
+  run_test test_skills_all_installs_both_upstream_sources
+  run_test test_target_guards_require_force
   run_test test_dry_run_writes_nothing
   run_test test_dry_run_json_outputs_plan
   run_test test_full_install_generates_expected_layout
   run_test test_existing_generated_files_are_preserved_unless_force_is_used
   run_test test_upstream_repo_without_skills_fails
   run_test test_upstream_repo_without_skill_files_fails
-  run_test test_generated_check_index_log_requires_index_and_log
-  run_test test_generated_check_index_log_requires_log_for_raw_changes
-  run_test test_generated_check_index_log_rejects_bad_generated_names
-  run_test test_generated_postrun_rejects_unauthorized_skill_file
+  run_test test_generated_check_index_log_requires_index_and_log_for_new_pages
+  run_test test_generated_check_index_log_exempts_content_edits
+  run_test test_generated_check_index_log_requires_log_for_deletions
+  run_test test_generated_check_index_log_warns_on_bad_generated_names
+  run_test test_generated_postrun_allows_skill_files_and_human_names
+  run_test test_generated_postrun_ignores_raw_gitkeep_placeholder
   run_test test_generated_postrun_rejects_forbidden_runtime_directories
   run_test test_generated_postrun_requires_raw_authorization
 

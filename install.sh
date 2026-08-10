@@ -9,7 +9,8 @@ Generate an llm-wiki knowledge vault in the target repository root.
 When no target path is provided, the current working directory is used.
 
 Options:
-  --force  Overwrite generated files in the target vault.
+  --force  Overwrite generated files in the target vault, and allow
+           installing into a non-empty directory or nested Git repository.
   --no-interactive
            Use the default selection for dependency tools and upstream skills.
   --yes
@@ -18,8 +19,7 @@ Options:
            Select dependency tools: rg,fzf, all, or none.
   --skills LIST
            Select upstream Skill sources: Ar9av,kepano, all, or none.
-  --no-install-tools
-           Do not install missing selectable tools.
+           Default: kepano. Ar9av targets its own vault layout and is opt-in.
   --offline
            Do not perform network bootstrap operations.
   --dry-run
@@ -49,11 +49,11 @@ if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
   exit 0
 fi
 
-command -v python3 >/dev/null || fail "Python 3.13+ is required to run the llm-wiki installer."
+command -v python3 >/dev/null || fail "Python 3.10+ is required to run the llm-wiki installer."
 PYTHON_VERSION="$(python3 -c 'import platform; print(platform.python_version())')" ||
-  fail "Python 3.13+ is required to run the llm-wiki installer."
-python3 -c 'import sys; raise SystemExit(sys.version_info < (3, 13))' ||
-  fail "Python 3.13+ is required to run the llm-wiki installer. Found: $PYTHON_VERSION."
+  fail "Python 3.10+ is required to run the llm-wiki installer."
+python3 -c 'import sys; raise SystemExit(sys.version_info < (3, 10))' ||
+  fail "Python 3.10+ is required to run the llm-wiki installer. Found: $PYTHON_VERSION. Tip: 'uvx llm-wiki-installer' provisions a suitable Python automatically."
 
 SCRIPT_SOURCE="${BASH_SOURCE[0]:-}"
 SCRIPT_DIR=""

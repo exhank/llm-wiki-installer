@@ -18,13 +18,26 @@ REQUIRED_DIRECTORIES = (
     "archives",
     "schema",
     ".agents/skills",
+    ".claude",
     ".scripts",
     ".obsidian/plugins/obsidian-git",
     ".obsidian/themes/Things",
 )
 
+# Empty contract directories receive a .gitkeep placeholder so the layout
+# survives commit, push, and clone.
+GITKEEP_DIRECTORIES = (
+    "inbox",
+    "raw",
+    "attachments",
+    "wiki/maps",
+    "outputs",
+    "archives",
+)
+
 GENERATED_FILES = (
     ("AGENTS.md", "AGENTS.md"),
+    ("CLAUDE.md", "CLAUDE.md"),
     ("README.md", "README.md"),
     ("wiki/index.md", "wiki-index.md"),
     ("wiki/tags.md", "wiki-tags.md"),
@@ -70,7 +83,7 @@ GENERATED_FILES = (
     ),
     (".obsidian/themes/Things/theme.css", "obsidian/themes/Things/theme.css"),
     (".gitignore", "gitignore"),
-)
+) + tuple((f"{directory}/.gitkeep", "gitkeep") for directory in GITKEEP_DIRECTORIES)
 
 EXECUTABLE_FILES = (
     ".scripts/postrun.sh",
@@ -85,8 +98,18 @@ def prepare_target(target: Path) -> None:
         reject_path_symlink(destination, target)
         destination.mkdir(parents=True, exist_ok=True)
 
+    link_claude_skills(target)
+
     if not (target / ".git").is_dir():
         run(["git", "-C", str(target), "init"], quiet=True)
+
+
+def link_claude_skills(target: Path) -> None:
+    """Expose .agents/skills to Claude Code via its .claude/skills path."""
+    claude_skills = target / ".claude/skills"
+    if claude_skills.is_symlink() or claude_skills.exists():
+        return
+    claude_skills.symlink_to(Path("../.agents/skills"))
 
 
 def template_context(
@@ -167,10 +190,10 @@ def write_file(
     relative = path.relative_to(target)
     if path.exists() and not force:
         if not quiet:
-            print(f"keep existing {relative}")
+            print(f"keep existing {relative}", flush=True)
         return
 
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
     if not quiet:
-        print(f"wrote {relative}")
+        print(f"wrote {relative}", flush=True)

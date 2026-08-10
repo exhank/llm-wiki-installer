@@ -19,6 +19,8 @@ This is an LLM-native Obsidian Markdown knowledge vault.
 - `schema/log.md` defines the detailed `wiki/log.jsonl` event schemas.
 - `schema/wiki-page.md` defines the detailed `wiki/*.md` page template.
 - `schema/map.md` defines the detailed `wiki/maps/*.md` map template.
+- `AGENTS.md` is the canonical agent policy; `CLAUDE.md` imports it for Claude
+  Code, and `.claude/skills/` is a symlink to `.agents/skills/`.
 
 ## Directory guide
 

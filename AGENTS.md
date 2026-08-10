@@ -129,7 +129,7 @@ Run focused tests with:
 
 ## Coding Style
 
-- Support Python 3.13+.
+- Support Python 3.10+.
 - Prefer standard library code; the runtime package intentionally has no
   third-party dependencies.
 - Use isort for import ordering and Black for formatting.
@@ -165,15 +165,16 @@ Run focused tests with:
   already exist.
 - Generated write paths and upstream copy targets must reject existing symlinks
   that would escape or redirect writes under the target root.
-- Interactive terminal installs must show separate default-all multi-select
-  prompts for dependency tools and upstream Skill sources. Up/Down moves, Space
-  toggles, and Enter accepts. Non-interactive installs and `--no-interactive`
-  must use the all-selected default.
+- Interactive terminal installs must show separate multi-select prompts for
+  dependency tools (default: all selected) and upstream Skill sources
+  (default: `kepano` only; `Ar9av` is opt-in). Up/Down moves, Space toggles,
+  and Enter accepts. Non-interactive installs and `--no-interactive` must use
+  the same defaults.
 
 ## Tool and Dependency Policy
 
-- Required bootstrap tools are Python 3.13+ and Git. Selectable target tools are
-  `rg` and `fzf`; all are selected by default.
+- Required bootstrap tools are Python 3.10+ and Git. Selectable target tools are
+  `rg` and `fzf`; both are selected by default and are never auto-installed.
 - Development-only Python tools are listed in `requirements-dev.txt` and
   configured in `pyproject.toml`; do not add runtime dependencies for tooling.
 - Do not vendor third-party Python dependencies into this repository.

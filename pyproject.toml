@@ -7,7 +7,7 @@ name = "llm-wiki-installer"
 dynamic = ["version"]
 description = "Installer for LLM-native Obsidian Markdown knowledge vaults."
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "llm-wiki contributors" }]
@@ -29,6 +29,9 @@ classifiers = [
   "Operating System :: POSIX",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Typing :: Typed",
   "Topic :: Software Development :: Build Tools",
@@ -67,14 +70,14 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 
 [tool.black]
-target-version = ["py313"]
+target-version = ["py310"]
 
 [tool.isort]
 profile = "black"
 src_paths = ["src", "tests"]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.10"
 files = ["src", "tests"]
 mypy_path = "src"
 strict = true
@@ -83,7 +86,7 @@ warn_unreachable = true
 
 [tool.pylint.main]
 persistent = false
-py-version = "3.13"
+py-version = "3.10"
 recursive = true
 source-roots = ["src"]
 

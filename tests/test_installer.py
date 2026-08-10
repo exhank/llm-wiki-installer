@@ -18,9 +18,12 @@ from llm_wiki_installer.errors import InstallerError
 from llm_wiki_installer.install_options import Options, parse_options
 from llm_wiki_installer.installer import (
     absolute_directory,
+    enclosing_git_root,
+    ensure_safe_target,
     reject_generator_target,
     run_install,
     source_root,
+    verify_target,
 )
 from llm_wiki_installer.target_layout import (
     EXECUTABLE_FILES,
@@ -83,7 +86,6 @@ def test_parse_options_accepts_explicit_tools_and_skills() -> None:
             "--tools",
             "rg,fzf",
             "--skills=kepano",
-            "--no-install-tools",
             "--offline",
             "--dry-run",
             "--json",
@@ -93,11 +95,15 @@ def test_parse_options_accepts_explicit_tools_and_skills() -> None:
 
     assert options.tools == ("rg", "fzf")
     assert options.skills == ("kepano",)
-    assert not options.install_tools
     assert options.offline
     assert options.dry_run
     assert options.json_output
     assert options.target_input == "/tmp/vault"
+
+
+def test_parse_options_rejects_removed_no_install_tools_flag() -> None:
+    with pytest.raises(InstallerError, match="unknown argument: --no-install-tools"):
+        parse_options(["--no-install-tools"])
 
 
 def test_parse_options_accepts_none_selection() -> None:
@@ -107,12 +113,21 @@ def test_parse_options_accepts_none_selection() -> None:
     assert options.skills == ()
 
 
+def test_parse_options_accepts_all_selection() -> None:
+    options = parse_options(["--tools=all", "--skills=all"])
+
+    assert options.tools == ("rg", "fzf")
+    assert options.skills == ("Ar9av", "kepano")
+
+
 @pytest.mark.parametrize(
     ("argv", "message"),
     [
         (["--bad"], "unknown argument: --bad"),
         (["one", "two"], "only one target path is allowed"),
         (["--tools", "bad"], "--tools contains unknown value"),
+        (["--tools"], "--tools requires"),
+        (["--tools="], "--tools requires a non-empty value"),
         (["--skills"], "--skills requires"),
     ],
 )
@@ -208,6 +223,64 @@ def test_reject_generator_target_rejects_lookalike(tmp_path: Path) -> None:
 
 def test_reject_generator_target_allows_normal_target(tmp_path: Path) -> None:
     reject_generator_target(tmp_path, tmp_path / "source")
+
+
+def test_ensure_safe_target_allows_empty_directory(tmp_path: Path) -> None:
+    ensure_safe_target(tmp_path, force=False)
+
+
+def test_ensure_safe_target_allows_harmless_entries(tmp_path: Path) -> None:
+    (tmp_path / ".git").mkdir()
+    (tmp_path / ".DS_Store").write_text("", encoding="utf-8")
+
+    ensure_safe_target(tmp_path, force=False)
+
+
+def test_ensure_safe_target_allows_existing_vault(tmp_path: Path) -> None:
+    (tmp_path / "AGENTS.md").write_text("policy\n", encoding="utf-8")
+    (tmp_path / "wiki").mkdir()
+    (tmp_path / "notes.md").write_text("existing\n", encoding="utf-8")
+
+    ensure_safe_target(tmp_path, force=False)
+
+
+def test_ensure_safe_target_rejects_non_empty_directory(tmp_path: Path) -> None:
+    (tmp_path / "notes.md").write_text("existing\n", encoding="utf-8")
+
+    with pytest.raises(InstallerError, match="target directory is not empty"):
+        ensure_safe_target(tmp_path, force=False)
+
+    ensure_safe_target(tmp_path, force=True)
+
+
+def test_ensure_safe_target_rejects_nested_git_repository(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    outer = tmp_path
+    target = outer / "notes"
+    target.mkdir()
+    monkeypatch.setattr(
+        "llm_wiki_installer.installer.command_output",
+        lambda _command, fallback="": str(outer),
+    )
+
+    with pytest.raises(InstallerError, match="inside an existing Git repository"):
+        ensure_safe_target(target, force=False)
+
+    ensure_safe_target(target, force=True)
+
+
+def test_enclosing_git_root_ignores_own_repo_and_non_paths(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        "llm_wiki_installer.installer.command_output",
+        lambda _command, fallback="": "not-an-absolute-path",
+    )
+    assert enclosing_git_root(tmp_path) is None
+
+    (tmp_path / ".git").mkdir()
+    assert enclosing_git_root(tmp_path) is None
 
 
 def test_run_install_dry_run_does_not_create_target(
@@ -315,6 +388,44 @@ def test_check_required_tools_skips_unselected_tools(
     check_required_tools(())
 
 
+def test_check_required_tools_reports_missing_selected_tools(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "llm_wiki_installer.toolchain.shutil.which",
+        lambda name: None if name == "rg" else f"/bin/{name}",
+    )
+    with pytest.raises(InstallerError, match="rg is required but not installed"):
+        check_required_tools(("rg", "fzf"))
+
+    monkeypatch.setattr(
+        "llm_wiki_installer.toolchain.shutil.which",
+        lambda name: None if name == "fzf" else f"/bin/{name}",
+    )
+    with pytest.raises(InstallerError, match="fzf is required but not installed"):
+        check_required_tools(("rg", "fzf"))
+
+
+def test_verify_target_reports_issues_without_failing(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    def failing_run(
+        command: list[str], **_kwargs: object
+    ) -> subprocess.CompletedProcess[str]:
+        code = 1 if command[0] == "bash" else 0
+        return subprocess.CompletedProcess(command, code)
+
+    monkeypatch.setattr("llm_wiki_installer.installer.run", failing_run)
+
+    verify_target(tmp_path)
+
+    out = capsys.readouterr().out
+    assert "vault checks reported issues" in out
+    assert "the install itself succeeded" in out
+
+
 def test_prepare_target_creates_layout_and_initializes_git(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -338,7 +449,13 @@ def test_prepare_target_creates_layout_and_initializes_git(
 
     for relative in REQUIRED_DIRECTORIES:
         assert (tmp_path / relative).is_dir()
+    claude_skills = tmp_path / ".claude/skills"
+    assert claude_skills.is_symlink()
+    assert claude_skills.resolve() == (tmp_path / ".agents/skills").resolve()
     assert calls == [["git", "-C", str(tmp_path), "init"]]
+
+    prepare_target(tmp_path)
+    assert claude_skills.is_symlink()
 
 
 def test_prepare_target_skips_git_init_when_repo_exists(
@@ -468,6 +585,10 @@ def test_write_generated_files_preserves_existing_files_without_force(
 
     assert readme.read_text(encoding="utf-8") == "custom readme\n"
     assert (tmp_path / "AGENTS.md").is_file()
+    assert (tmp_path / "CLAUDE.md").is_file()
+    assert (tmp_path / "inbox/.gitkeep").is_file()
+    assert (tmp_path / "raw/.gitkeep").is_file()
+    assert (tmp_path / "wiki/maps/.gitkeep").is_file()
     assert (tmp_path / "wiki/tags.md").is_file()
     assert (tmp_path / "schema/workflow.md").is_file()
     assert (tmp_path / "schema/log.md").is_file()
@@ -891,11 +1012,52 @@ def test_generated_review_commands_disable_git_pager(
     agents = render_template("AGENTS.md", template_context)
 
     assert "git --no-pager diff --stat || true" in postrun
-    assert "Required Obsidian plugin asset missing" in postrun
     assert "git --no-pager diff --stat" in readme
     assert "git --no-pager diff" in readme
     assert "bash .scripts/postrun.sh" in agents
     assert "git diff" not in agents
+
+
+def test_generated_postrun_is_limited_to_hard_boundaries(
+    template_context: dict[str, str],
+) -> None:
+    postrun = render_template("postrun.sh", template_context)
+
+    assert "ALLOW_RAW_CHANGE" in postrun
+    assert ".codex/rules" in postrun
+    assert "Required Obsidian plugin asset missing" not in postrun
+    assert "Unauthorized SKILL.md" not in postrun
+    assert "kebab-case" not in postrun
+
+
+def test_generated_check_index_log_scopes_hard_failures_to_structure(
+    template_context: dict[str, str],
+) -> None:
+    check = render_template("check-index-log.sh", template_context)
+
+    assert "new wiki pages were added but wiki/index.md was not updated." in check
+    assert "deleted, moved, renamed, or copied" in check
+    assert "WARNING: agent-generated" in check
+    assert '"type"' not in check
+    assert "raw/ changed" not in check
+
+
+def test_generated_claude_bridge_imports_agents_policy(
+    template_context: dict[str, str],
+) -> None:
+    claude = render_template("CLAUDE.md", template_context)
+
+    assert "@AGENTS.md" in claude
+
+
+def test_generated_codex_hooks_run_vault_checks(
+    template_context: dict[str, str],
+) -> None:
+    hooks = json.loads(render_template("codex-hooks.json", template_context))
+
+    stop_hooks = hooks["hooks"]["Stop"][0]["hooks"]
+    assert stop_hooks[0]["type"] == "command"
+    assert stop_hooks[0]["command"] == "bash .scripts/check-index-log.sh"
 
 
 def test_generated_tag_policy_removes_frontmatter_type(
@@ -1015,10 +1177,14 @@ def test_run_install_with_no_selected_tools(
         "llm_wiki_installer.installer.write_generated_files",
         lambda _target, _context, force, **_kwargs: calls.append(f"write:{force}"),
     )
-    monkeypatch.setattr(
-        "llm_wiki_installer.installer.run",
-        lambda command, **_kwargs: calls.append(" ".join(command)),
-    )
+
+    def fakerun(
+        command: list[str], **_kwargs: object
+    ) -> subprocess.CompletedProcess[str]:
+        calls.append(" ".join(command))
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr("llm_wiki_installer.installer.run", fakerun)
 
     run_install(Options(force=False, target_input=str(target), interactive=False))
 

@@ -62,8 +62,8 @@ The project is published on PyPI as
 run a release directly with:
 
 ```bash
-uvx --python 3.13 llm-wiki-installer /path/to/knowledge-vault
-uvx --python 3.13 llm-wiki-installer==<version> --dry-run --json /path/to/knowledge-vault
+uvx llm-wiki-installer /path/to/knowledge-vault
+uvx llm-wiki-installer==<version> --dry-run --json /path/to/knowledge-vault
 ```
 
 The package version is sourced from `src/llm_wiki_installer/__init__.py`; do not

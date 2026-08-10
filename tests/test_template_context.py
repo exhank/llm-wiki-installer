@@ -71,6 +71,7 @@ def test_render_jsonl_log_template(template_context: dict[str, str]) -> None:
             },
             "files": [
                 "AGENTS.md",
+                "CLAUDE.md",
                 "README.md",
                 "wiki/index.md",
                 "wiki/tags.md",
@@ -89,22 +90,18 @@ def test_render_jsonl_log_template(template_context: dict[str, str]) -> None:
     assert "{{" not in rendered
 
 
-def test_gitignore_template_combines_official_sources_and_vault_rules() -> None:
+def test_gitignore_template_is_minimal_and_note_safe() -> None:
     rendered = render_template("gitignore", {})
 
-    assert "# llm-wiki / Obsidian" in rendered
     assert ".obsidian/workspace.json" in rendered
-    assert ".codex/auth.json" in rendered
-    assert "# GitHub gitignore: Python" in rendered
-    assert "https://github.com/github/gitignore/blob/main/Python.gitignore" in rendered
-    assert "__pycache__/" in rendered
-    assert "# GitHub gitignore: Node" in rendered
-    assert "https://github.com/github/gitignore/blob/main/Node.gitignore" in rendered
-    assert "node_modules/" in rendered
-    assert "# GitHub gitignore: Global/macOS" in rendered
+    assert ".obsidian/workspace-mobile.json" in rendered
     assert ".DS_Store" in rendered
-    assert "# GitHub gitignore: Global/Windows" in rendered
-    assert "Thumbs.db" in rendered
-    assert "# GitHub gitignore: Global/Linux" in rendered
-    assert ".nfs*" in rendered
+    assert ".env" in rendered
+    # Broad boilerplate patterns silently swallow note directories with
+    # common names; the generated ignore file must stay note-safe.
+    for note_hostile in ("logs", "dist", "out", "lib/", "build/", "target/", "tmp/"):
+        assert f"\n{note_hostile}\n" not in rendered
+    assert "node_modules" not in rendered
+    assert "__pycache__" not in rendered
+    assert len(rendered.splitlines()) < 25
     assert "{{" not in rendered

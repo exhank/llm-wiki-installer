@@ -14,7 +14,8 @@ Generate an llm-wiki knowledge vault in the target repository root.
 When no target path is provided, the current working directory is used.
 
 Options:
-  --force  Overwrite generated files in the target vault.
+  --force  Overwrite generated files in the target vault, and allow
+           installing into a non-empty directory or nested Git repository.
   --no-interactive
            Use the default selection for dependency tools and upstream skills.
   --yes
@@ -23,8 +24,7 @@ Options:
            Select dependency tools: rg,fzf, all, or none.
   --skills LIST
            Select upstream Skill sources: Ar9av,kepano, all, or none.
-  --no-install-tools
-           Do not install missing selectable tools.
+           Default: kepano. Ar9av targets its own vault layout and is opt-in.
   --offline
            Do not perform network bootstrap operations.
   --dry-run
@@ -46,7 +46,6 @@ class Options:  # pylint: disable=too-many-instance-attributes
     interactive: bool = True
     tools: Optional[tuple[str, ...]] = None
     skills: Optional[tuple[str, ...]] = None
-    install_tools: bool = True
     offline: bool = False
     dry_run: bool = False
     json_output: bool = False
@@ -60,7 +59,6 @@ def parse_options(argv: Iterable[str]) -> Options:  # pylint: disable=too-many-b
     target_input: Optional[str] = None
     tools: Optional[tuple[str, ...]] = None
     skills: Optional[tuple[str, ...]] = None
-    install_tools = True
     offline = False
     dry_run = False
     json_output = False
@@ -89,11 +87,8 @@ def parse_options(argv: Iterable[str]) -> Options:  # pylint: disable=too-many-b
             skills = parse_selection(args[index], SKILL_CHOICES, "--skills")
         elif arg.startswith("--skills="):
             skills = parse_selection(arg.split("=", 1)[1], SKILL_CHOICES, "--skills")
-        elif arg == "--no-install-tools":
-            install_tools = False
         elif arg == "--offline":
             offline = True
-            install_tools = False
         elif arg == "--dry-run":
             dry_run = True
         elif arg == "--json":
@@ -105,7 +100,6 @@ def parse_options(argv: Iterable[str]) -> Options:  # pylint: disable=too-many-b
                 interactive=interactive,
                 tools=tools,
                 skills=skills,
-                install_tools=install_tools,
                 offline=offline,
                 dry_run=dry_run,
                 json_output=json_output,
@@ -125,7 +119,6 @@ def parse_options(argv: Iterable[str]) -> Options:  # pylint: disable=too-many-b
         interactive=interactive,
         tools=tools,
         skills=skills,
-        install_tools=install_tools,
         offline=offline,
         dry_run=dry_run,
         json_output=json_output,

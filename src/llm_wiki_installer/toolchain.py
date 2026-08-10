@@ -20,22 +20,22 @@ def select_dependency_tools(interactive: bool) -> tuple[str, ...]:
     )
 
 
-def check_required_tools(
-    selected_tools: Iterable[str], install_missing: bool = True, quiet: bool = False
-) -> None:
+def check_required_tools(selected_tools: Iterable[str]) -> None:
     selected = set(selected_tools)
     require_executable("git", "git is required.")
 
-    del install_missing, quiet
-
     if "rg" in selected:
         require_executable(
-            "rg", "rg is required. Recommended install: brew install ripgrep."
+            "rg",
+            "rg is required but not installed. Install it (for example: "
+            "brew install ripgrep) or re-run with --tools excluding rg.",
         )
 
     if "fzf" in selected:
         require_executable(
-            "fzf", "fzf is required. Recommended install: brew install fzf."
+            "fzf",
+            "fzf is required but not installed. Install it (for example: "
+            "brew install fzf) or re-run with --tools excluding fzf.",
         )
 
 

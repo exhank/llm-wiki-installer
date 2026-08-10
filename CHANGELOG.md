@@ -5,6 +5,67 @@ All notable changes to this project will be documented here.
 This project follows a simple human-readable changelog. Versions are published
 when the package version in `src/llm_wiki_installer/__init__.py` changes.
 
+## 0.2.0 - 2026-08-10
+
+Contract-repair release following an architecture review: make the default
+install succeed on ordinary machines, and make the generated vault stop
+contradicting its own review-through-Git design.
+
+Installer:
+
+- Lower the Python requirement from 3.13+ to 3.10+ (the code never needed
+  3.13); the streamed launcher now suggests `uvx` when `python3` is too old.
+- Remove the `--no-install-tools` flag and the README claim that missing
+  tools are installed automatically; that behavior never existed. Missing
+  selected tools now fail with an actionable message.
+- Refuse non-empty target directories and targets nested inside another Git
+  repository unless `--force` is passed; re-running inside a generated vault
+  is always allowed.
+- Run the post-install verification without failing the install, so
+  re-running the installer on a vault with legitimate uncommitted work
+  succeeds and reports findings instead of erroring.
+- Flush progress output so piped and CI logs are ordered correctly.
+
+Generated vault:
+
+- Configure the bundled obsidian-git plugin for manual commits: no auto
+  commit-and-sync, no auto pull or push, no `mergeStrategy: "theirs"`.
+  Automatic background commits bypassed the Git review gate and blinded the
+  check scripts.
+- Generate `CLAUDE.md` (an `@AGENTS.md` import) and a `.claude/skills`
+  symlink so Claude Code, which reads neither `AGENTS.md` nor
+  `.agents/skills/`, receives the same policy and skills.
+- Split the check scripts: `postrun.sh` now enforces only the hard `raw/`
+  evidence boundary; `check-index-log.sh` requires index and log updates only
+  for new, deleted, moved, or renamed pages, exempts content edits, drops the
+  log event-type whitelist, and demotes kebab-case naming issues to warnings.
+  Stray `SKILL.md` files (for example user-installed Claude Code skills) are
+  no longer rejected.
+- Default the upstream Skill selection to `kepano/obsidian-skills`;
+  `Ar9av/obsidian-wiki` is opt-in because its skills target that project's
+  own vault layout, and the generated workflow schema now tells agents to map
+  or ignore foreign layout references instead of restructuring the vault.
+- Wire `.codex/hooks.json` to run the structural checks on the Codex `Stop`
+  event (active after the project is trusted) instead of shipping an empty
+  hook object.
+- Add `.gitkeep` placeholders to the empty contract directories so the layout
+  survives commit, push, and clone.
+- Replace the ~500-line concatenated `.gitignore` with a minimal note-safe
+  ignore file; the old one silently ignored user note directories named
+  `logs`, `dist`, `out`, `lib`, `build`, or `target`.
+- State one-descriptive-commit-per-task in `AGENTS.md` and exempt
+  user-created filenames from the kebab-case rule.
+- Add claim-provenance markers (`extracted` / `inferred` / `ambiguous`) to the
+  wiki page schema and a digest-and-sampling review cadence to the workflow
+  schema, so verification effort scales with use instead of with write volume.
+
+Documentation:
+
+- Rewrite the generation guide as a contract that points at
+  `src/llm_wiki_installer/templates/` instead of duplicating every template
+  body, and sync the technical design, security model, and README with the
+  behavior above.
+
 ## 0.1.7 - 2026-05-29
 
 - Generate `schema/wiki-page.md` and `schema/map.md` so detailed page and map
