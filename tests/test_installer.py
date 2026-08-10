@@ -894,8 +894,8 @@ def test_generated_review_commands_disable_git_pager(
     assert "Required Obsidian plugin asset missing" in postrun
     assert "git --no-pager diff --stat" in readme
     assert "git --no-pager diff" in readme
-    assert "git --no-pager diff --stat" in agents
-    assert "git --no-pager diff" in agents
+    assert "bash .scripts/postrun.sh" in agents
+    assert "git diff" not in agents
 
 
 def test_generated_tag_policy_removes_frontmatter_type(
